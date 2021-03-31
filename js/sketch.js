@@ -1,14 +1,14 @@
+// MOVE ALL OF THESE INTO THE CLASS FFS
 // parameters
 let position_scl, color_scl;
 let pos_tolerance;
-let max_vel, max_life, max_weight, max_resets, max_refills;
-let particles_number;
+let max_vel, min_life, max_life, max_weight, max_resets;
+let particles_number, max_refills;
 let time_moving;
 let border;
 
 // internal variables
-let hue_offset, hue_interval;
-let particles, refills;
+let particles, hue_offset, refills, seed;
 
 // constants
 let PI = 3.14159265359;
@@ -50,25 +50,33 @@ $(document).ready(() => {
 // handle mouse click
 
 
+// Random class
+class Random {
+
+}
+
 // Particle class
 class Particle {
-  constructor(width, height) {
+  constructor(width, height, hue_offset, hue_interval) {
     this._width = width;
     this._height = height;
+    this._hue_offset = hue_offset;
+    this._hue_interval = hue_interval;
 
     this._resets = 0;
     this._x = random(width);
     this._y = random(height);
+
     this.reset();
   }
 
   move() {
     // generate angle and module of velocity
     let n, rho, theta;
-    n = getNoise(this._pos.x * position_scl, this._pos.y * position_scl, 5000);
-    rho = n * max_vel + this._d_vel;
-    n = getNoise(this._pos.x * position_scl, this._pos.y * position_scl, 6000);
-    theta = n * TWO_PI + this._d_theta;
+    n = getNoise(this._pos.x * position_scl, this._pos.y * position_scl, 5000 + this._seed);
+    rho = n * max_vel;
+    n = getNoise(this._pos.x * position_scl, this._pos.y * position_scl, 6000 + this._seed);
+    theta = n * TWO_PI;
     // create velocity vector
     let vel;
     vel = new Vector.fromAngle2D(theta).setMag(rho);
@@ -89,7 +97,7 @@ class Particle {
 
     // calculate color (hue, saturation, brightness, alpha)
     let hue, sat, bri;
-    hue = (this._hue + this._d_hue + hue_offset);
+    hue = (this._hue + this._hue_offset);
     sat = (1 - eased) * (100 - this._sat_min) + this._sat_min;
     bri = (1 - eased) * (100 - this._bri_min) + this._bri_min;
 
@@ -124,11 +132,10 @@ class Particle {
   reset() {
     // reset particle to starting position
     this._resets++;
-    // add some randomnsess
-    let dx, dy;
-    dx = random_interval(0, 1 * position_scl);
-    dy = random_interval(0, 1 * position_scl);
-    this._pos = new Vector(this._x + dx, this._y + dy);
+    // add some randomness
+    this._seed = random_interval(0.01, 0.01);
+
+    this._pos = new Vector(this._x, this._y);
     this._prev_pos = this._pos.copy();
     // reset everything
     this._sat_min = random_interval(80, 5);
@@ -136,16 +143,12 @@ class Particle {
     this._max_life = max_life;
     // reset life, hue and width
     let n;
-    n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 1000);
-    this._life = n * (this._max_life - 15) + 15;
+    n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 1000 + this._seed);
+    this._life = n * (this._max_life - min_life) + min_life;
     n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 2000);
-    this._hue = n * hue_interval;
-    n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 3000);
+    this._hue = n * this._hue_interval;
+    n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 3000 + this._seed);
     this._weight = n * (max_weight - 1) + 1;
-    // reset differentials
-    this._d_hue = 0;
-    this._d_theta = random(TWO_PI / 360);
-    this._d_vel = random(0.5);
 
     if (time_moving) {
       this._d_hue += 360 * (this.frame_count / 6000);
@@ -157,11 +160,10 @@ class Particle {
   // get if particle is alive
   get dead() {
     let life_tolerance;
-    life_tolerance = this._max_life / 5;
-
-    return this._pos.x < -pos_tolerance ||
+    life_tolerance = this._max_life / 3;
+    return this._pos.x < 0 - pos_tolerance ||
       this._pos.x > this._width + pos_tolerance ||
-      this._pos.y < -pos_tolerance ||
+      this._pos.y < 0 - pos_tolerance ||
       this._pos.y > this._height + pos_tolerance ||
       this._life < -life_tolerance;
   }
@@ -235,7 +237,7 @@ class Sketch {
 
   save() {
     let filename;
-    filename = parseInt(Date.now() / 1e6) + ".png";
+    filename = seed + ".png";
     let link;
     link = $("<a></a>");
     $("body").append(link);
@@ -250,42 +252,57 @@ class Sketch {
 
   }
 
-  setup() {
-    // set parameters
-    border = 0.75;
-    position_scl = random_interval(0.0025, 0.001);
-    color_scl = random_interval(0.0005, 0.00025);
-    pos_tolerance = this.canvas.width / 5;
-    max_vel = random(1, 3);
-    max_life = random_interval(50, 25);
-    max_weight = 5;
-    max_resets = 3;
-    particles_number = 5000;
-    max_refills = 1e5;
-    time_moving = false;
-    hue_offset = random(360);
-    hue_interval = random(150, 250);
-
+  createParticles(number) {
     // create particles
-    refills = 0;
-    particles = [];
-    for (let i = 0; i < particles_number; i++) {
+    for (let i = 0; i < number; i++) {
+      let hue_interval;
+      hue_interval = random(127, 180);
+
+      let width, height;
+      width = this.canvas.width * (1 - 2 * border);
+      height = this.canvas.height * (1 - 2 * border);
+
       let new_p;
-      new_p = new Particle(this.canvas.width * border, this.canvas.height * border);
+      new_p = new Particle(width, height, hue_offset, hue_interval);
       particles.push(new_p);
     }
+  }
+
+  setup() {
+    // set parameters
+    border = 0.1;
+    position_scl = random_interval(0.0025, 0.001);
+    color_scl = random_interval(0.0005, 0.00025);
+    pos_tolerance = this.canvas.width / 3;
+    max_vel = random(1, 3);
+    min_life = 20;
+    max_life = random_interval(75, 25);
+    max_weight = 5;
+    max_resets = 3;
+    max_refills = 1e6;
+    particles_number = 25000;
+    time_moving = false;
+    hue_offset = random(360);
+    // set seed
+    seed = parseInt(Date.now() / 1e6);
+    // create particles
+    particles = [];
+    refills = 0;
+    this.createParticles(particles_number);
     // init noise
-    noise.seed(Date.now());
-    // reset background
+
+    noise.seed(seed);
+    // reset background - antique white
     this.background("#fffeef");
   }
 
   draw() {
-    let displacement;
-    displacement = this.canvas.width * (1 - border) / 2;
-    this.ctx.save();
-    this.ctx.translate(displacement, displacement);
+    let x_displacement, y_displacement;
+    x_displacement = this.canvas.width * border;
+    y_displacement = this.canvas.height * border;
 
+    this.ctx.save();
+    this.ctx.translate(x_displacement, y_displacement);
     particles.forEach((p, i) => {
       p.show(this.ctx);
       p.move();
@@ -296,14 +313,21 @@ class Sketch {
     });
     this.ctx.restore();
 
-    particles = particles.filter(p => p.resets <= max_resets);
+    particles = particles.filter(p => p.resets <= max_resets + 1);
+    // difference in particles
+    let particles_diff;
+    particles_diff = particles_number - particles.length;
 
-    for (let i = 0; i < particles_number - particles.length; i++) {
-      let new_p;
-      new_p = new Particle(this.canvas.width * border, this.canvas.height * border);
-      particles.push(new_p);
-      refills++;
+    if (particles_diff > 0 && refills < max_refills) {
+      refills += particles_diff;
+      this.createParticles(particles_diff);
     }
+
+    if (refills > max_refills) {
+      console.log("DONE");
+    }
+
+
   }
 }
 
@@ -327,6 +351,7 @@ const random_interval = (average, interval) => {
 // get noise for position
 const getNoise = (x, y, z) => {
   let n;
-  n = (1 + noise.simplex3(x, y, z)) / 2;
+  if (z === undefined) n = (1 + noise.simplex2(x, y)) / 2;
+  else n = (1 + noise.simplex3(x, y, z)) / 2;
   return n;
 };
