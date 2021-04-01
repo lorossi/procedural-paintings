@@ -1,4 +1,3 @@
-// MOVE ALL OF THESE INTO THE CLASS FFS
 // parameters
 let position_scl, color_scl;
 let pos_tolerance, life_tolerance;
@@ -6,17 +5,12 @@ let max_vel, min_life, max_life, max_weight, max_resets;
 let particles_number, circle_groups, line_groups, max_refills;
 let border;
 
-// internal variables
-let particles, circle_particles, line_particles, hue_offset, refills, seed;
-let particles_ended, groups_ended;
-
 // constants
 let PI = Math.PI;
 let TWO_PI = 2 * PI;
 let HALF_PI = PI / 2;
 
-
-
+// main function
 $(document).ready(() => {
   let canvas, ctx, s;
   // canvas selector
@@ -191,7 +185,7 @@ class CircleParticle extends Particle {
 class LineParticle extends Particle {
   constructor(x0, y0, x1, y1, width, height, hue_offset, hue_interval) {
     super();
-    this._life_factor = 0.5;
+    this._life_factor = 0.4;
     this._hue_offset = hue_offset;
     this._hue_interval = hue_interval;
     this._width = width;
@@ -270,7 +264,7 @@ class Sketch {
 
   save() {
     let filename;
-    filename = seed + ".png";
+    filename = this._seed + ".png";
     let link;
     link = $("<a></a>");
     $("body").append(link);
@@ -296,8 +290,8 @@ class Sketch {
       height = this.canvas.height * (1 - 2 * border);
 
       let new_p;
-      new_p = new Particle(width, height, hue_offset, hue_interval);
-      particles.push(new_p);
+      new_p = new Particle(width, height, this._hue_offset, hue_interval);
+      this._particles.push(new_p);
     }
   }
 
@@ -313,8 +307,8 @@ class Sketch {
       circle_particles_num = PI * Math.pow(r, 2) / (this.canvas.width * this.canvas.height) * particles_number * 3;
       for (let j = 0; j < circle_particles_num; j++) {
         let new_part;
-        new_part = new CircleParticle(cx, cy, r, hue_offset, circle_hue_interval);
-        circle_particles.push(new_part);
+        new_part = new CircleParticle(cx, cy, r, this._hue_offset, circle_hue_interval);
+        this._circle_particles.push(new_part);
       }
     }
   }
@@ -337,15 +331,13 @@ class Sketch {
       line_particles_num = line_length * 1.75;
       for (let j = 0; j < line_particles_num; j++) {
         let new_part;
-        new_part = new LineParticle(x0, y0, x1, y1, width, height, hue_offset, line_hue_interval);
-        line_particles.push(new_part);
+        new_part = new LineParticle(x0, y0, x1, y1, width, height, this._hue_offset, line_hue_interval);
+        this._line_particles.push(new_part);
       }
     }
   }
 
-  setup() {
-    // init noise
-    noise.seed(seed);
+  _initParameters() {
     // set parameters
     border = 0.15;
     position_scl = random_interval(0.002, 0.001);
@@ -359,21 +351,28 @@ class Sketch {
     max_refills = 100000;
     circle_groups = 0;
     line_groups = 8;
-    hue_offset = random(360);
+    this._hue_offset = random(360);
 
     pos_tolerance = this.canvas.width / 10;
     life_tolerance = max_life / 10;
+  }
+
+  setup() {
     // set seed
-    seed = parseInt(Date.now() / 1e6);
+    this._seed = parseInt(Date.now() / 1e6);
+    // init noise
+    noise.seed(this._seed);
+    // set parameters
+    this._initParameters();
     // create particles
-    particles = [];
-    circle_particles = [];
-    line_particles = [];
-
-    particles_ended = false;
-    groups_ended = false;
-
-    refills = 0;
+    this._particles = [];
+    this._circle_particles = [];
+    this._line_particles = [];
+    // reset end conditions
+    this._particles_ended = false;
+    this._groups_ended = false;
+    this._refills = 0;
+    // create particles
     this.createParticles(particles_number);
     this.createCircleParticles(circle_groups);
     this.createLineParticles(line_groups);
@@ -389,9 +388,9 @@ class Sketch {
     this.ctx.save();
     this.ctx.translate(x_displacement, y_displacement);
 
-    if (!particles_ended) {
+    if (!this._particles_ended) {
 
-      particles.forEach((p, i) => {
+      this._particles.forEach((p, i) => {
         p.show(this.ctx);
         p.move();
 
@@ -400,19 +399,19 @@ class Sketch {
         }
       });
 
-      particles = particles.filter(p => !p.dead);
+      this._particles = this._particles.filter(p => !p.dead);
 
       let particles_diff;
-      particles_diff = particles_number - particles.length;
+      particles_diff = particles_number - this._particles.length;
 
       if (particles_diff > 0) {
-        refills += particles_diff;
+        this._refills += particles_diff;
         this.createParticles(particles_diff);
-        console.log({ particles_diff: particles_diff, refills: refills, max_refills: max_refills });
+        console.log({ particles_diff: particles_diff, refills: this._refills, max_refills: max_refills });
       }
 
-    } else if (!groups_ended) {
-      circle_particles.forEach((p, i) => {
+    } else if (!this._groups_ended) {
+      this._circle_particles.forEach((p, i) => {
         p.show(this.ctx);
         p.move();
 
@@ -420,9 +419,9 @@ class Sketch {
           p.reset();
         }
       });
-      circle_particles = circle_particles.filter(p => !p.dead);
+      this._circle_particles = this._circle_particles.filter(p => !p.dead);
 
-      line_particles.forEach((p, i) => {
+      this._line_particles.forEach((p, i) => {
         p.show(this.ctx);
         p.move();
 
@@ -430,19 +429,19 @@ class Sketch {
           p.reset();
         }
       });
-      line_particles = line_particles.filter(p => !p.dead);
+      this._line_particles = this._line_particles.filter(p => !p.dead);
     }
     this.ctx.restore();
 
     // difference in particles
-    if ((refills > max_refills || particles.length == 0) && !particles_ended) {
-      particles_ended = true;
-      groups_ended = false;
+    if ((this._refills > max_refills || this._particles.length == 0) && !this._particles_ended) {
+      this._particles_ended = true;
+      this._groups_ended = false;
       this.createCircleParticles(circle_groups);
     }
 
-    if (particles_ended && !groups_ended && circle_particles.length == 0 && line_particles.length == 0) {
-      groups_ended = true;
+    if (this._particles_ended && !this._groups_ended && this._circle_particles.length == 0 && this._line_particles.length == 0) {
+      this._groups_ended = true;
       console.log("DONE");
     }
   }
