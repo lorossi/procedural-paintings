@@ -6,12 +6,17 @@ class Particle {
     this._hue_offset = hue_offset;
     this._hue_interval = hue_interval;
 
-    this._max_life = max_life;
-    this._min_life = min_life;
-    this._life_factor = 0.5;
+    this._max_life = 100;
+    this._min_life = 150;
+    this._max_weight = 2;
+    this._life_factor = 1;
+    this._max_vel = 2;
+    let max_dist;
+    max_dist = Math.sqrt(Math.pow(width / 2, 2) + Math.pow(height / 2, 2));
+    this._pos_tolerance = max_dist / 20;
 
     this._resets = 0;
-    this._max_resets = 3;
+    this._max_resets = 5;
 
     this._x = random(width);
     this._y = random(height);
@@ -23,27 +28,29 @@ class Particle {
     // reset particle to starting position
     this._resets++;
     // add some randomness
-    this._seed = random(0, 5 * position_scl);
+    this._seed = random_interval(0, 10 * position_scl);
     this._pos = new Vector(this._x, this._y);
     this._prev_pos = this._pos.copy();
     // reset everything
-    this._sat_min = random_interval(80, 10);
-    this._bri_min = random_interval(30, 10);
+    this._sat_min = random_interval(80, 5);
+    this._bri_min = random_interval(40, 5);
     // reset hue, weight and life
     let n;
     n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 2000);
     this._hue = n * this._hue_interval;
     n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 3000 + this._seed);
-    this._weight = n * 5 + 1;
+    this._weight = n * (this._max_weight - 0.5) + 0.5;
     n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 4000 + this._seed);
     this._life = n * (this._max_life - this._min_life) + this._min_life;
+    // compute tolerances
+    this._life_tolerance = this._max_life / 20;
   }
 
   move() {
     // generate angle and module of velocity
     let n, rho, theta;
     n = getNoise(this._pos.x * position_scl, this._pos.y * position_scl, 5000 + this._seed);
-    rho = n * max_vel;
+    rho = n * (this._max_vel - 1) + 1;
     n = getNoise(this._pos.x * position_scl, this._pos.y * position_scl, 6000 + this._seed);
     theta = n * TWO_PI;
     // create velocity vector
@@ -68,7 +75,7 @@ class Particle {
     let hue, sat, bri, alpha;
     hue = (this._hue + this._hue_offset);
     sat = (1 - eased) * (100 - this._sat_min) + this._sat_min;
-    bri = (1 - eased) * (100 - this._bri_min) + this._bri_min;
+    bri = (1 - eased) * (50 - this._bri_min) + this._bri_min;
     alpha = eased;
 
     if (hue < 0) hue += 360;
@@ -82,6 +89,8 @@ class Particle {
 
     if (alpha < 0) alpha = 0;
     else if (alpha > 1) alpha = 1;
+
+    console.log(hue, sat, bri);
 
     // calculate stroke weight
     let weight;
@@ -98,16 +107,16 @@ class Particle {
 
   // get if particle has to be replaced
   get replaceable() {
-    return this._pos.x < 0 - pos_tolerance ||
-      this._pos.x > this._width + pos_tolerance ||
-      this._pos.y < 0 - pos_tolerance ||
-      this._pos.y > this._height + pos_tolerance ||
-      this._life < -life_tolerance;
+    return this._pos.x < -this._pos_tolerance ||
+      this._pos.x > this._width + this._pos_tolerance ||
+      this._pos.y < -this._pos_tolerance ||
+      this._pos.y > this._height + this._pos_tolerance ||
+      this._life < -this._life_tolerance;
   }
 
   // check if particle is dead
   get dead() {
-    return this._resets > this._max_resets;
+    return this._resets > this._max_resets + 1;
   }
 }
 
@@ -116,11 +125,9 @@ class CircleParticle extends Particle {
     super();
     this._hue_offset = hue_offset;
     this._hue_interval = hue_interval;
-
-    this._life_factor = 0.5;
+    this._pos_tolerance = radius / 40;
 
     this._center = new Vector(cx, cy);
-
     let rho, phi;
     rho = random(0, radius);
     phi = random(0, TWO_PI);
@@ -140,7 +147,9 @@ class LineParticle extends Particle {
     this._hue_offset = hue_offset;
     this._hue_interval = hue_interval;
 
-    this._life_factor = 0.4;
+    let length;
+    length = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
+    this._pos_tolerance = length / 40;
 
     let t;
     t = random();
