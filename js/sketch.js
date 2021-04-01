@@ -3,12 +3,12 @@
 let position_scl, color_scl;
 let pos_tolerance, life_tolerance;
 let max_vel, min_life, max_life, max_weight, max_resets;
-let particles_number, circle_groups, max_refills;
-let time_moving;
+let particles_number, circle_groups, line_groups, max_refills;
 let border;
 
 // internal variables
-let particles, circle_particles, hue_offset, refills, seed;
+let particles, circle_particles, line_particles, hue_offset, refills, seed;
+let particles_ended, groups_ended;
 
 // constants
 let PI = Math.PI;
@@ -55,11 +55,34 @@ class Particle {
     this._hue_offset = hue_offset;
     this._hue_interval = hue_interval;
 
+    this._max_life = max_life;
+    this._min_life = min_life;
+    this._life = random(this._min_life, this._max_life);
+    this._life_factor = 1;
+
     this._resets = 0;
     this._x = random(width);
     this._y = random(height);
 
     this.reset();
+  }
+
+  reset() {
+    // reset particle to starting position
+    this._resets++;
+    // add some randomness
+    this._seed = random(0, 5 * position_scl);
+    this._pos = new Vector(this._x, this._y);
+    this._prev_pos = this._pos.copy();
+    // reset everything
+    this._sat_min = random_interval(80, 10);
+    this._bri_min = random_interval(30, 10);
+    // reset hue and weight
+    let n;
+    n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 2000);
+    this._hue = n * this._hue_interval;
+    n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 3000 + this._seed);
+    this._weight = n * (max_weight - 1) + 1;
   }
 
   move() {
@@ -77,7 +100,7 @@ class Particle {
     // add velocity to position
     this._pos.add(vel);
     // decrease life
-    this._life--;
+    this._life -= this._life_factor;
   }
 
   show(ctx) {
@@ -118,39 +141,10 @@ class Particle {
     ctx.moveTo(this._prev_pos.x, this._prev_pos.y);
     ctx.lineTo(this._pos.x, this._pos.y);
     ctx.stroke();
-
   }
 
-  reset() {
-    // reset particle to starting position
-    this._resets++;
-    // add some randomness
-    this._seed = random(0, 5 * position_scl);
-
-    this._pos = new Vector(this._x, this._y);
-    this._prev_pos = this._pos.copy();
-    // reset everything
-    this._sat_min = random_interval(80, 5);
-    this._bri_min = random_interval(40, 5);
-    this._max_life = max_life;
-    // reset life, hue and width
-    let n;
-    n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 1000 + this._seed);
-    this._life = n * (this._max_life - min_life) + min_life;
-    n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 2000);
-    this._hue = n * this._hue_interval;
-    n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 3000 + this._seed);
-    this._weight = n * (max_weight - 1) + 1;
-
-    if (time_moving) {
-      this._d_hue += 360 * (this.frame_count / 6000);
-      this._d_theta += TWO_PI * (this.frame_count / 12000);
-    }
-
-  }
-
-  // get if particle is alive
-  get resettable() {
+  // get if particle has to be replaced
+  get replaceable() {
     return this._pos.x < 0 - pos_tolerance ||
       this._pos.x > this._width + pos_tolerance ||
       this._pos.y < 0 - pos_tolerance ||
@@ -158,9 +152,9 @@ class Particle {
       this._life < -life_tolerance;
   }
 
-  // get number of resets
-  get resets() {
-    return this._resets;
+  // check if particle is dead
+  get dead() {
+    return this._resets > max_resets;
   }
 }
 
@@ -185,16 +179,31 @@ class CircleParticle extends Particle {
     this.reset();
   }
 
-  // get if particle is alive
-  get resettable() {
+  // get if particle has to be replaced
+  get replaceable() {
     let r;
     r = this._pos.copy().sub(this._center).mag();
-    return r > this._radius + pos_tolerance * 4 ||
-      this._life < -life_tolerance * 4;
+    return r > this._radius + pos_tolerance ||
+      this._life < -life_tolerance;
   }
+}
 
-  get dead() {
-    return this._resets > max_resets;
+class LineParticle extends Particle {
+  constructor(x0, y0, x1, y1, width, height, hue_offset, hue_interval) {
+    super();
+    this._life_factor = 0.5;
+    this._hue_offset = hue_offset;
+    this._hue_interval = hue_interval;
+    this._width = width;
+    this._height = height;
+
+    let t;
+    t = random();
+    this._x = x0 + t * (x1 - x0);
+    this._y = y0 + t * (y1 - y0);
+    this._start = new Vector(this._x, this._y);
+    this._length = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
+    this.reset();
   }
 }
 
@@ -295,16 +304,41 @@ class Sketch {
   createCircleParticles(groups) {
     for (let i = 0; i < groups; i++) {
       let cx, cy, r;
-      cx = random_interval(this.canvas.width / 2, this.canvas.width / 4);
-      cy = random_interval(this.canvas.height / 2, this.canvas.height / 4);
-      r = random(this.canvas.width / 16, this.canvas.width / 8);
-      let hue_interval;
-      hue_interval = random_interval(10, 5);
-      let circle_particles_num = PI * Math.pow(r, 2) / (this.canvas.width * this.canvas.height) * particles_number * 2;
+      cx = random_interval(this.canvas.width / 2, this.canvas.width / 8);
+      cy = random_interval(this.canvas.height / 2, this.canvas.height / 8);
+      r = random_interval(this.canvas.width / 6, this.canvas.width / 16);
+      let circle_hue_interval;
+      circle_hue_interval = random_interval(10, 5);
+      let circle_particles_num;
+      circle_particles_num = PI * Math.pow(r, 2) / (this.canvas.width * this.canvas.height) * particles_number * 3;
       for (let j = 0; j < circle_particles_num; j++) {
         let new_part;
-        new_part = new CircleParticle(cx, cy, r, hue_offset, hue_interval);
+        new_part = new CircleParticle(cx, cy, r, hue_offset, circle_hue_interval);
         circle_particles.push(new_part);
+      }
+    }
+  }
+
+  createLineParticles(groups) {
+    for (let i = 0; i < groups; i++) {
+      let width, height;
+      width = this.canvas.width * (1 - 2 * border);
+      height = this.canvas.height * (1 - 2 * border);
+      let x0, y0, x1, y1;
+      x0 = random(width);
+      x1 = random(width);
+      y0 = random(height);
+      y1 = random(height);
+      let line_length;
+      line_length = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
+      let line_hue_interval;
+      line_hue_interval = random_interval(75, 40);
+      let line_particles_num;
+      line_particles_num = line_length * 1.75;
+      for (let j = 0; j < line_particles_num; j++) {
+        let new_part;
+        new_part = new LineParticle(x0, y0, x1, y1, width, height, hue_offset, line_hue_interval);
+        line_particles.push(new_part);
       }
     }
   }
@@ -313,18 +347,18 @@ class Sketch {
     // init noise
     noise.seed(seed);
     // set parameters
-    border = 0.1;
-    position_scl = random_interval(0.0015, 0.001);
+    border = 0.15;
+    position_scl = random_interval(0.002, 0.001);
     color_scl = random_interval(0.0005, 0.00025);
     max_vel = random(1, 3);
-    min_life = 40;
-    max_life = random_interval(100, 25);
+    min_life = random(40, 50);
+    max_life = random(80, 120);
     max_weight = 5;
-    max_resets = 2;
-    max_refills = 1e6;
-    particles_number = 25000;
-    circle_groups = 5;
-    time_moving = false;
+    max_resets = 3;
+    particles_number = 0;
+    max_refills = 100000;
+    circle_groups = 0;
+    line_groups = 8;
     hue_offset = random(360);
 
     pos_tolerance = this.canvas.width / 10;
@@ -334,12 +368,17 @@ class Sketch {
     // create particles
     particles = [];
     circle_particles = [];
+    line_particles = [];
+
+    particles_ended = false;
+    groups_ended = false;
 
     refills = 0;
     this.createParticles(particles_number);
     this.createCircleParticles(circle_groups);
+    this.createLineParticles(line_groups);
     // reset background - antique white
-    this.background("#fffeef");
+    this.background("#FDF5EB");
   }
 
   draw() {
@@ -350,47 +389,62 @@ class Sketch {
     this.ctx.save();
     this.ctx.translate(x_displacement, y_displacement);
 
-    particles.forEach((p, i) => {
-      p.show(this.ctx);
-      p.move();
+    if (!particles_ended) {
 
-      if (p.resettable) {
-        p.reset();
+      particles.forEach((p, i) => {
+        p.show(this.ctx);
+        p.move();
+
+        if (p.replaceable) {
+          p.reset();
+        }
+      });
+
+      particles = particles.filter(p => !p.dead);
+
+      let particles_diff;
+      particles_diff = particles_number - particles.length;
+
+      if (particles_diff > 0) {
+        refills += particles_diff;
+        this.createParticles(particles_diff);
+        console.log({ particles_diff: particles_diff, refills: refills, max_refills: max_refills });
       }
-    });
 
-    circle_particles.forEach((p, i) => {
-      p.show(this.ctx);
-      p.move();
+    } else if (!groups_ended) {
+      circle_particles.forEach((p, i) => {
+        p.show(this.ctx);
+        p.move();
 
-      if (p.resettable) {
-        p.reset();
-      }
-    });
+        if (p.replaceable) {
+          p.reset();
+        }
+      });
+      circle_particles = circle_particles.filter(p => !p.dead);
+
+      line_particles.forEach((p, i) => {
+        p.show(this.ctx);
+        p.move();
+
+        if (p.replaceable) {
+          p.reset();
+        }
+      });
+      line_particles = line_particles.filter(p => !p.dead);
+    }
     this.ctx.restore();
 
-
-    particles = particles.filter(p => !p.dead);
-    circle_particles = circle_particles.filter(p => !p.dead);
     // difference in particles
-    let particles_diff;
-    particles_diff = particles_number - particles.length;
-
-    if (particles_diff > 0 && refills < max_refills) {
-      refills += particles_diff;
-      this.createParticles(particles_diff);
-      console.log(refills);
-    }
-
-    if (circle_particles.length == 0) {
+    if ((refills > max_refills || particles.length == 0) && !particles_ended) {
+      particles_ended = true;
+      groups_ended = false;
       this.createCircleParticles(circle_groups);
     }
 
-    if (refills > max_refills) {
+    if (particles_ended && !groups_ended && circle_particles.length == 0 && line_particles.length == 0) {
+      groups_ended = true;
       console.log("DONE");
     }
-
-
   }
 }
 
