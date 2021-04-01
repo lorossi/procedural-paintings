@@ -90,8 +90,6 @@ class Particle {
     if (alpha < 0) alpha = 0;
     else if (alpha > 1) alpha = 1;
 
-    console.log(hue, sat, bri);
-
     // calculate stroke weight
     let weight;
     weight = eased * this._weight;

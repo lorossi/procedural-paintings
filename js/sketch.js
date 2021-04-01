@@ -91,7 +91,6 @@ class Sketch {
     height = this.canvas.height * (1 - 2 * this._border);
     let free_particles_num;
     free_particles_num = width * height * 0.01;
-    console.log(free_particles_num);
     // create particles
     for (let i = 0; i < groups; i++) {
       // hue interval is different for each particle group
@@ -126,7 +125,7 @@ class Sketch {
       circle_hue_offset = random_interval(this._hue_offset, 40);
       // number of particles in the circle, is proportional to its size
       let circle_particles_num;
-      circle_particles_num = PI * Math.pow(r, 2) * 0.02;
+      circle_particles_num = PI * Math.pow(r, 2) * 0.04;
       for (let j = 0; j < circle_particles_num; j++) {
         // create and push new particle
         let new_p;
@@ -163,7 +162,7 @@ class Sketch {
       line_hue_offset = random_interval(this._hue_offset, 10);
       // number of particles is proportional to the line length
       let line_particles_num;
-      line_particles_num = line_length * 1.75;
+      line_particles_num = line_length;
       for (let j = 0; j < line_particles_num; j++) {
         // create and push new particle
         let new_p;
@@ -200,7 +199,7 @@ class Sketch {
       let side_length;
       side_length = 2 * r * Math.sin(PI / sides);
       let side_points;
-      side_points = side_length * 1.75;
+      side_points = side_length;
       for (let j = 0; j < sides; j++) {
         let start, end;
         start = j / sides * TWO_PI + phi;
@@ -221,23 +220,45 @@ class Sketch {
   }
 
   _initParameters() {
+    // set seed
+    this._seed = parseInt(Date.now() / 1e6);
+    // init noise
+    noise.seed(this._seed);
+
     // set parameters
     position_scl = random_interval(0.002, 0.001);
     color_scl = random_interval(0.0005, 0.00025);
 
     this._border = 0.15;
+    this._hue_offset = random(360);
+
+    // change THESE to make things work
+    let mode, auto;
+    mode = parseInt(random(4));
+    auto = true;
+
     this._free_groups = 0;
     this._circle_groups = 0;
-    this._line_groups = 2;
+    this._line_groups = 0;
     this._polygon_groups = 0;
-    this._hue_offset = random(360);
+
+    switch (mode && auto) {
+      case 0:
+        this._free_groups = random_int(2, 5);
+        break;
+      case 1:
+        this._circle_groups = random_int(4, 10);
+        break;
+      case 2:
+        this._line_groups = random_int(8, 13);
+        break;
+      case 3:
+        this._polygon_groups = random_int(3, 6);
+        this._polygon_sides = random_int(3, 7);
+    }
   }
 
   setup() {
-    // set seed
-    this._seed = parseInt(Date.now() / 1e6);
-    // init noise
-    noise.seed(this._seed);
     // set parameters
     this._initParameters();
     // create particles
@@ -245,7 +266,7 @@ class Sketch {
     this._createFreeParticles(this._free_groups);
     this._createCircleParticles(this._circle_groups);
     this._createLineParticles(this._line_groups);
-    this._createPolygonParticles(this._polygon_groups, 6);
+    this._createPolygonParticles(this._polygon_groups, this._polygon_sides);
     // reset background - antique white
     this.background("#FDF5EB");
   }
@@ -289,10 +310,19 @@ const random = (a, b) => {
   else if (a != undefined && b != undefined) return Math.random() * (b - a) + a;
 };
 
+const random_int = (a, b) => {
+  return parseInt(random(a, b));
+}
+
 // random between average-interval and average+interval
 const random_interval = (average, interval) => {
   return average + (Math.random() * 2 - 1) * interval;
 };
+
+const random_int_interval = (average, interval) => {
+  return parseInt(random_interval(average, interval));
+};
+
 
 // get noise for position
 const getNoise = (x, y, z) => {
