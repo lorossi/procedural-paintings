@@ -3,7 +3,7 @@
 let position_scl, color_scl;
 let pos_tolerance, life_tolerance;
 let max_vel, min_life, max_life, max_weight, max_resets;
-let particles_number, max_refills;
+let particles_number, circle_groups, max_refills;
 let time_moving;
 let border;
 
@@ -292,18 +292,20 @@ class Sketch {
     }
   }
 
-  createCircleParticles() {
-    let cx, cy, r;
-    cx = random_interval(this.canvas.width / 2, this.canvas.width / 3);
-    cy = random_interval(this.canvas.height / 2, this.canvas.height / 3);
-    r = random_interval(this.canvas.width / 8, this.canvas.width / 16);
-    let hue_interval;
-    hue_interval = random_interval(10, 5);
-    let circle_particles_num = PI * Math.pow(r, 2) / (this.canvas.width * this.canvas.height) * particles_number * 2;
-    for (let i = 0; i < circle_particles_num; i++) {
-      let new_part;
-      new_part = new CircleParticle(cx, cy, r, hue_offset, hue_interval);
-      circle_particles.push(new_part);
+  createCircleParticles(groups) {
+    for (let i = 0; i < groups; i++) {
+      let cx, cy, r;
+      cx = random_interval(this.canvas.width / 2, this.canvas.width / 4);
+      cy = random_interval(this.canvas.height / 2, this.canvas.height / 4);
+      r = random(this.canvas.width / 16, this.canvas.width / 8);
+      let hue_interval;
+      hue_interval = random_interval(10, 5);
+      let circle_particles_num = PI * Math.pow(r, 2) / (this.canvas.width * this.canvas.height) * particles_number * 2;
+      for (let j = 0; j < circle_particles_num; j++) {
+        let new_part;
+        new_part = new CircleParticle(cx, cy, r, hue_offset, hue_interval);
+        circle_particles.push(new_part);
+      }
     }
   }
 
@@ -312,15 +314,16 @@ class Sketch {
     noise.seed(seed);
     // set parameters
     border = 0.1;
-    position_scl = random_interval(0.0025, 0.001);
+    position_scl = random_interval(0.0015, 0.001);
     color_scl = random_interval(0.0005, 0.00025);
     max_vel = random(1, 3);
     min_life = 40;
     max_life = random_interval(100, 25);
     max_weight = 5;
-    max_resets = 3;
+    max_resets = 2;
     max_refills = 1e6;
-    particles_number = 10000;
+    particles_number = 25000;
+    circle_groups = 5;
     time_moving = false;
     hue_offset = random(360);
 
@@ -334,11 +337,7 @@ class Sketch {
 
     refills = 0;
     this.createParticles(particles_number);
-
-    for (let i = 0; i < 3; i++) {
-      this.createCircleParticles();
-    }
-
+    this.createCircleParticles(circle_groups);
     // reset background - antique white
     this.background("#fffeef");
   }
@@ -361,7 +360,6 @@ class Sketch {
     });
 
     circle_particles.forEach((p, i) => {
-      console.log(i);
       p.show(this.ctx);
       p.move();
 
@@ -371,8 +369,9 @@ class Sketch {
     });
     this.ctx.restore();
 
-    circle_particles = circle_particles.filter(p => !p.dead);
+
     particles = particles.filter(p => !p.dead);
+    circle_particles = circle_particles.filter(p => !p.dead);
     // difference in particles
     let particles_diff;
     particles_diff = particles_number - particles.length;
@@ -380,6 +379,11 @@ class Sketch {
     if (particles_diff > 0 && refills < max_refills) {
       refills += particles_diff;
       this.createParticles(particles_diff);
+      console.log(refills);
+    }
+
+    if (circle_particles.length == 0) {
+      this.createCircleParticles(circle_groups);
     }
 
     if (refills > max_refills) {
@@ -392,7 +396,7 @@ class Sketch {
 
 // ease percentage
 const ease = (x) => {
-  return 1 - Math.pow(1 - x, 4);
+  return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 };
 
 // random (0-1) with no parameter, less than b with one parameter, between a and b with two parameters
