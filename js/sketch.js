@@ -1,8 +1,8 @@
 // parameters
-let position_scl, color_scl;
+let position_scl, color_scl, particle_density;
 let pos_tolerance, life_tolerance;
 let max_vel, min_life, max_life, max_weight;
-let circle_groups, line_groups;
+let circle_groups, line_groups, polygon_groups;
 let border;
 
 // constants
@@ -10,37 +10,7 @@ let PI = Math.PI;
 let TWO_PI = 2 * PI;
 let HALF_PI = PI / 2;
 
-// main function
-$(document).ready(() => {
-  let canvas, ctx, s;
-  // canvas selector
-  canvas = $("#sketch")[0];
-
-  // inject canvas in page
-  if (canvas.getContext) {
-    ctx = canvas.getContext("2d", { alpha: false });
-    s = new Sketch(canvas, ctx);
-    s.run();
-  }
-
-  // wait for sketch load
-  if (s != undefined) {
-    // handle clicks
-    $(canvas).click(() => {
-      s.click();
-    });
-
-    // handle keypress
-    $(document).keypress((e) => {
-      if (e.originalEvent.keyCode == 13) {
-        // enter
-        s.save();
-      }
-    });
-  }
-
-});
-
+// Sketch class
 class Sketch {
   constructor(canvas, ctx, fps) {
     this.canvas = canvas;
@@ -185,7 +155,7 @@ class Sketch {
         // calculate length of line
         line_length = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
       } while (line_length < width / 10 || line_length < height / 10);
-      // hue interval of the group
+      // hue interval and offset of the group
       let line_hue_interval;
       line_hue_interval = random_interval(75, 40);
       let line_hue_offset;
@@ -202,6 +172,47 @@ class Sketch {
     }
   }
 
+  _createPolygonParticles(groups, sides) {
+    if (sides == undefined) sides = 3;
+
+    // particle boundaries
+    let width, height;
+    width = this.canvas.width * (1 - 2 * border);
+    height = this.canvas.height * (1 - 2 * border);
+    for (let i = 0; i < groups; i++) {
+      // hue interval and offset of the group
+      let polygon_hue_interval;
+      polygon_hue_interval = random_interval(75, 40);
+      let polygon_hue_offset;
+      polygon_hue_offset = random_interval(this._hue_offset, 40);
+      let cx, cy, r, phi;
+      cx = random_interval(width / 2, width / 4);
+      cy = random_interval(height / 2, height / 4);
+      r = random_interval(width / 4, width / 6);
+      phi = random(TWO_PI);
+      let side_length;
+      side_length = 2 * r * Math.sin(PI / sides);
+      let side_points;
+      side_points = side_length * 1.75;
+      for (let j = 0; j < sides; j++) {
+        let start, end;
+        start = j / sides * TWO_PI + phi;
+        end = (j + 1) / sides * TWO_PI + phi;
+        let x0, y0, x1, y1;
+        x0 = cx + r * Math.cos(start);
+        y0 = cy + r * Math.sin(start);
+        x1 = cx + r * Math.cos(end);
+        y1 = cy + r * Math.sin(end);
+
+        for (let k = 0; k < side_points; k++) {
+          let new_p;
+          new_p = new LineParticle(x0, y0, x1, y1, width, height, polygon_hue_offset, polygon_hue_interval);
+          this._particles.push(new_p);
+        }
+      }
+    }
+  }
+
   _initParameters() {
     // set parameters
     border = 0.15;
@@ -210,11 +221,13 @@ class Sketch {
     max_vel = random(1, 3);
     min_life = 50;
     max_life = random(80, 120);
+
+    particle_density = 0;
     circle_groups = 0;
     line_groups = 0;
-    this._hue_offset = random(360);
-    this._particle_density = 0.15;
+    polygon_groups = 1;
 
+    this._hue_offset = random(360);
     pos_tolerance = this.canvas.width / 10;
     life_tolerance = max_life / 10;
   }
@@ -228,9 +241,10 @@ class Sketch {
     this._initParameters();
     // create particles
     this._particles = [];
-    this._createFreeParticles(this._particle_density);
+    this._createFreeParticles(particle_density);
     this._createCircleParticles(circle_groups);
     this._createLineParticles(line_groups);
+    this._createPolygonParticles(polygon_groups);
     // reset background - antique white
     this.background("#FDF5EB");
   }

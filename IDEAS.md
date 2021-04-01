@@ -1,5 +1,5 @@
 # Ideas that could be implemented
 
-- Triangle lines
+- Triangle lines *Implemented!*
 - Texture on the image (background?)
 - Add some noise to text aswell
