@@ -1,8 +1,8 @@
 // parameters
 let position_scl, color_scl;
 let pos_tolerance, life_tolerance;
-let max_vel, min_life, max_life, max_weight, max_resets;
-let particles_number, circle_groups, line_groups, max_refills;
+let max_vel, min_life, max_life, max_weight;
+let circle_groups, line_groups;
 let border;
 
 // constants
@@ -118,16 +118,19 @@ class Sketch {
 
   }
 
-  _createParticles(number) {
+  _createFreeParticles(density) {
+    // particle boundaries
+    let width, height;
+    width = this.canvas.width * (1 - 2 * border);
+    height = this.canvas.height * (1 - 2 * border);
+    let number;
+    number = width * height * density;
     // create particles
     for (let i = 0; i < number; i++) {
+      // hue interval is different for each particle
       let hue_interval;
       hue_interval = random(127, 180);
-
-      let width, height;
-      width = this.canvas.width * (1 - 2 * border);
-      height = this.canvas.height * (1 - 2 * border);
-
+      // create and push new particle
       let new_p;
       new_p = new Particle(width, height, this._hue_offset, hue_interval);
       this._particles.push(new_p);
@@ -135,43 +138,66 @@ class Sketch {
   }
 
   _createCircleParticles(groups) {
+    // particle boundaries
+    let width, height;
+    width = this.canvas.width * (1 - 2 * border);
+    height = this.canvas.height * (1 - 2 * border);
     for (let i = 0; i < groups; i++) {
+      // center of the circular group
       let cx, cy, r;
-      cx = random_interval(this.canvas.width / 2, this.canvas.width / 8);
-      cy = random_interval(this.canvas.height / 2, this.canvas.height / 8);
-      r = random_interval(this.canvas.width / 6, this.canvas.width / 16);
+      cx = random_interval(width / 2, width / 4);
+      cy = random_interval(height / 2, height / 4);
+      r = random_interval(width / 8, width / 16);
+      // hue interval and offset of the group
       let circle_hue_interval;
-      circle_hue_interval = random_interval(10, 5);
+      circle_hue_interval = random_interval(75, 40);
+      let circle_hue_offset;
+      circle_hue_offset = random_interval(this._hue_offset, 40);
+      // number of particles in the circle, is proportional to its size
       let circle_particles_num;
-      circle_particles_num = PI * Math.pow(r, 2) / (this.canvas.width * this.canvas.height) * particles_number * 3;
+      circle_particles_num = PI * Math.pow(r, 2) * 0.1;
       for (let j = 0; j < circle_particles_num; j++) {
-        let new_part;
-        new_part = new CircleParticle(cx, cy, r, this._hue_offset, circle_hue_interval);
-        this._circle_particles.push(new_part);
+        // create and push new particle
+        let new_p;
+        new_p = new CircleParticle(cx, cy, r, circle_hue_offset, circle_hue_interval);
+        this._particles.push(new_p);
       }
     }
   }
 
   _createLineParticles(groups) {
+    // particle boundaries
+    let width, height;
+    width = this.canvas.width * (1 - 2 * border);
+    height = this.canvas.height * (1 - 2 * border);
     for (let i = 0; i < groups; i++) {
-      let width, height;
-      width = this.canvas.width * (1 - 2 * border);
-      height = this.canvas.height * (1 - 2 * border);
-      let x0, y0, x1, y1;
-      x0 = random(width);
-      x1 = random(width);
-      y0 = random(height);
-      y1 = random(height);
+      // keep generating new coordinates until minimum length is reached
+      // line length
       let line_length;
-      line_length = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
+      // start and end coordinates
+      let x0, y0, x1, y1;
+      do {
+        // generate random coordinates
+        x0 = random(width);
+        x1 = random(width);
+        y0 = random(height);
+        y1 = random(height);
+        // calculate length of line
+        line_length = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
+      } while (line_length < width / 10 || line_length < height / 10);
+      // hue interval of the group
       let line_hue_interval;
       line_hue_interval = random_interval(75, 40);
+      let line_hue_offset;
+      line_hue_offset = random_interval(this._hue_offset, 40);
+      // number of particles is proportional to the line length
       let line_particles_num;
       line_particles_num = line_length * 1.75;
       for (let j = 0; j < line_particles_num; j++) {
-        let new_part;
-        new_part = new LineParticle(x0, y0, x1, y1, width, height, this._hue_offset, line_hue_interval);
-        this._line_particles.push(new_part);
+        // create and push new particle
+        let new_p;
+        new_p = new LineParticle(x0, y0, x1, y1, width, height, line_hue_offset, line_hue_interval);
+        this._particles.push(new_p);
       }
     }
   }
@@ -182,15 +208,12 @@ class Sketch {
     position_scl = random_interval(0.002, 0.001);
     color_scl = random_interval(0.0005, 0.00025);
     max_vel = random(1, 3);
-    min_life = random(40, 50);
+    min_life = 50;
     max_life = random(80, 120);
-    max_weight = 5;
-    max_resets = 3;
-    particles_number = 0;
-    max_refills = 100000;
     circle_groups = 0;
-    line_groups = 8;
+    line_groups = 0;
     this._hue_offset = random(360);
+    this._particle_density = 0.15;
 
     pos_tolerance = this.canvas.width / 10;
     life_tolerance = max_life / 10;
@@ -205,14 +228,7 @@ class Sketch {
     this._initParameters();
     // create particles
     this._particles = [];
-    this._circle_particles = [];
-    this._line_particles = [];
-    // reset end conditions
-    this._particles_ended = false;
-    this._groups_ended = false;
-    this._refills = 0;
-    // create particles
-    this._createParticles(particles_number);
+    this._createFreeParticles(this._particle_density);
     this._createCircleParticles(circle_groups);
     this._createLineParticles(line_groups);
     // reset background - antique white
@@ -220,15 +236,15 @@ class Sketch {
   }
 
   draw() {
-    let x_displacement, y_displacement;
-    x_displacement = this.canvas.width * border;
-    y_displacement = this.canvas.height * border;
+    if (this._particles.length > 0) {
+      // calculate canvas displacement due to border
+      let x_displacement, y_displacement;
+      x_displacement = this.canvas.width * border;
+      y_displacement = this.canvas.height * border;
 
-    this.ctx.save();
-    this.ctx.translate(x_displacement, y_displacement);
-
-    if (!this._particles_ended) {
-
+      this.ctx.save();
+      this.ctx.translate(x_displacement, y_displacement);
+      // draw main particles
       this._particles.forEach((p, i) => {
         p.show(this.ctx);
         p.move();
@@ -237,50 +253,10 @@ class Sketch {
           p.reset();
         }
       });
-
+      // remove dead particles
       this._particles = this._particles.filter(p => !p.dead);
-
-      let particles_diff;
-      particles_diff = particles_number - this._particles.length;
-
-      if (particles_diff > 0) {
-        this._refills += particles_diff;
-        this._createParticles(particles_diff);
-        console.log({ particles_diff: particles_diff, refills: this._refills, max_refills: max_refills });
-      }
-
-    } else if (!this._groups_ended) {
-      this._circle_particles.forEach((p, i) => {
-        p.show(this.ctx);
-        p.move();
-
-        if (p.replaceable) {
-          p.reset();
-        }
-      });
-      this._circle_particles = this._circle_particles.filter(p => !p.dead);
-
-      this._line_particles.forEach((p, i) => {
-        p.show(this.ctx);
-        p.move();
-
-        if (p.replaceable) {
-          p.reset();
-        }
-      });
-      this._line_particles = this._line_particles.filter(p => !p.dead);
-    }
-    this.ctx.restore();
-
-    // difference in particles
-    if ((this._refills > max_refills || this._particles.length == 0) && !this._particles_ended) {
-      this._particles_ended = true;
-      this._groups_ended = false;
-      this._createCircleParticles(circle_groups);
-    }
-
-    if (this._particles_ended && !this._groups_ended && this._circle_particles.length == 0 && this._line_particles.length == 0) {
-      this._groups_ended = true;
+      this.ctx.restore();
+    } else {
       console.log("DONE");
     }
   }
