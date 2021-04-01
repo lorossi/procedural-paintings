@@ -1,17 +1,17 @@
 // MOVE ALL OF THESE INTO THE CLASS FFS
 // parameters
 let position_scl, color_scl;
-let pos_tolerance;
+let pos_tolerance, life_tolerance;
 let max_vel, min_life, max_life, max_weight, max_resets;
 let particles_number, max_refills;
 let time_moving;
 let border;
 
 // internal variables
-let particles, hue_offset, refills, seed;
+let particles, circle_particles, hue_offset, refills, seed;
 
 // constants
-let PI = 3.14159265359;
+let PI = Math.PI;
 let TWO_PI = 2 * PI;
 let HALF_PI = PI / 2;
 
@@ -46,14 +46,6 @@ $(document).ready(() => {
   }
 
 });
-
-// handle mouse click
-
-
-// Random class
-class Random {
-
-}
 
 // Particle class
 class Particle {
@@ -133,7 +125,7 @@ class Particle {
     // reset particle to starting position
     this._resets++;
     // add some randomness
-    this._seed = random_interval(0.01, 0.01);
+    this._seed = random(0, 5 * position_scl);
 
     this._pos = new Vector(this._x, this._y);
     this._prev_pos = this._pos.copy();
@@ -158,9 +150,7 @@ class Particle {
   }
 
   // get if particle is alive
-  get dead() {
-    let life_tolerance;
-    life_tolerance = this._max_life / 3;
+  get resettable() {
     return this._pos.x < 0 - pos_tolerance ||
       this._pos.x > this._width + pos_tolerance ||
       this._pos.y < 0 - pos_tolerance ||
@@ -171,6 +161,40 @@ class Particle {
   // get number of resets
   get resets() {
     return this._resets;
+  }
+}
+
+class CircleParticle extends Particle {
+  constructor(cx, cy, radius, hue_offset, hue_interval) {
+    super();
+
+    this._center = new Vector(cx, cy);
+    this._radius = radius;
+    this._hue_offset = hue_offset;
+    this._hue_interval = hue_interval;
+
+    this._resets = 0;
+
+    let rho, phi;
+    rho = random(0, this._radius);
+    phi = random(0, TWO_PI);
+    let pos;
+    pos = new Vector.fromAngle2D(phi).setMag(rho).add(this._center);
+    this._x = pos.x;
+    this._y = pos.y;
+    this.reset();
+  }
+
+  // get if particle is alive
+  get resettable() {
+    let r;
+    r = this._pos.copy().sub(this._center).mag();
+    return r > this._radius + pos_tolerance * 4 ||
+      this._life < -life_tolerance * 4;
+  }
+
+  get dead() {
+    return this._resets > max_resets;
   }
 }
 
@@ -268,30 +292,53 @@ class Sketch {
     }
   }
 
+  createCircleParticles() {
+    let cx, cy, r;
+    cx = random_interval(this.canvas.width / 2, this.canvas.width / 3);
+    cy = random_interval(this.canvas.height / 2, this.canvas.height / 3);
+    r = random_interval(this.canvas.width / 8, this.canvas.width / 16);
+    let hue_interval;
+    hue_interval = random_interval(10, 5);
+    let circle_particles_num = PI * Math.pow(r, 2) / (this.canvas.width * this.canvas.height) * particles_number * 2;
+    for (let i = 0; i < circle_particles_num; i++) {
+      let new_part;
+      new_part = new CircleParticle(cx, cy, r, hue_offset, hue_interval);
+      circle_particles.push(new_part);
+    }
+  }
+
   setup() {
+    // init noise
+    noise.seed(seed);
     // set parameters
     border = 0.1;
     position_scl = random_interval(0.0025, 0.001);
     color_scl = random_interval(0.0005, 0.00025);
-    pos_tolerance = this.canvas.width / 3;
     max_vel = random(1, 3);
-    min_life = 20;
-    max_life = random_interval(75, 25);
+    min_life = 40;
+    max_life = random_interval(100, 25);
     max_weight = 5;
     max_resets = 3;
     max_refills = 1e6;
-    particles_number = 25000;
+    particles_number = 10000;
     time_moving = false;
     hue_offset = random(360);
+
+    pos_tolerance = this.canvas.width / 10;
+    life_tolerance = max_life / 10;
     // set seed
     seed = parseInt(Date.now() / 1e6);
     // create particles
     particles = [];
+    circle_particles = [];
+
     refills = 0;
     this.createParticles(particles_number);
-    // init noise
 
-    noise.seed(seed);
+    for (let i = 0; i < 3; i++) {
+      this.createCircleParticles();
+    }
+
     // reset background - antique white
     this.background("#fffeef");
   }
@@ -303,17 +350,29 @@ class Sketch {
 
     this.ctx.save();
     this.ctx.translate(x_displacement, y_displacement);
+
     particles.forEach((p, i) => {
       p.show(this.ctx);
       p.move();
 
-      if (p.dead) {
+      if (p.resettable) {
+        p.reset();
+      }
+    });
+
+    circle_particles.forEach((p, i) => {
+      console.log(i);
+      p.show(this.ctx);
+      p.move();
+
+      if (p.resettable) {
         p.reset();
       }
     });
     this.ctx.restore();
 
-    particles = particles.filter(p => p.resets <= max_resets + 1);
+    circle_particles = circle_particles.filter(p => !p.dead);
+    particles = particles.filter(p => !p.dead);
     // difference in particles
     let particles_diff;
     particles_diff = particles_number - particles.length;
