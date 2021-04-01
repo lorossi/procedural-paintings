@@ -6,8 +6,8 @@ class Particle {
     this._hue_offset = hue_offset;
     this._hue_interval = hue_interval;
 
-    this._max_life = 100;
-    this._min_life = 150;
+    this._max_life = 150;
+    this._min_life = 125;
     this._max_weight = 2;
     this._life_factor = 1;
     this._max_vel = 2;

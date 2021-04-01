@@ -1,7 +1,5 @@
 // parameters
-let position_scl, color_scl, free_groups;
-let circle_groups, line_groups, polygon_groups;
-let border;
+let position_scl, color_scl;
 
 // constants
 let PI = Math.PI;
@@ -89,8 +87,8 @@ class Sketch {
   _createFreeParticles(groups) {
     // particle boundaries
     let width, height;
-    width = this.canvas.width * (1 - 2 * border);
-    height = this.canvas.height * (1 - 2 * border);
+    width = this.canvas.width * (1 - 2 * this._border);
+    height = this.canvas.height * (1 - 2 * this._border);
     let free_particles_num;
     free_particles_num = width * height * 0.01;
     console.log(free_particles_num);
@@ -113,8 +111,8 @@ class Sketch {
   _createCircleParticles(groups) {
     // particle boundaries
     let width, height;
-    width = this.canvas.width * (1 - 2 * border);
-    height = this.canvas.height * (1 - 2 * border);
+    width = this.canvas.width * (1 - 2 * this._border);
+    height = this.canvas.height * (1 - 2 * this._border);
     for (let i = 0; i < groups; i++) {
       // center of the circular group
       let cx, cy, r;
@@ -141,8 +139,8 @@ class Sketch {
   _createLineParticles(groups) {
     // particle boundaries
     let width, height;
-    width = this.canvas.width * (1 - 2 * border);
-    height = this.canvas.height * (1 - 2 * border);
+    width = this.canvas.width * (1 - 2 * this._border);
+    height = this.canvas.height * (1 - 2 * this._border);
     for (let i = 0; i < groups; i++) {
       // keep generating new coordinates until minimum length is reached
       // line length
@@ -181,8 +179,8 @@ class Sketch {
 
     // particle boundaries
     let width, height;
-    width = this.canvas.width * (1 - 2 * border);
-    height = this.canvas.height * (1 - 2 * border);
+    width = this.canvas.width * (1 - 2 * this._border);
+    height = this.canvas.height * (1 - 2 * this._border);
     for (let i = 0; i < groups; i++) {
       // hue interval and offset of the group
       let polygon_hue_interval;
@@ -224,15 +222,14 @@ class Sketch {
 
   _initParameters() {
     // set parameters
-    border = 0.15;
     position_scl = random_interval(0.002, 0.001);
     color_scl = random_interval(0.0005, 0.00025);
 
-    free_groups = 0;
-    circle_groups = 0;
-    line_groups = 2;
-    polygon_groups = 0;
-
+    this._border = 0.15;
+    this._free_groups = 0;
+    this._circle_groups = 0;
+    this._line_groups = 2;
+    this._polygon_groups = 0;
     this._hue_offset = random(360);
   }
 
@@ -245,20 +242,20 @@ class Sketch {
     this._initParameters();
     // create particles
     this._particles = [];
-    this._createFreeParticles(free_groups);
-    this._createCircleParticles(circle_groups);
-    this._createLineParticles(line_groups);
-    this._createPolygonParticles(polygon_groups, 6);
+    this._createFreeParticles(this._free_groups);
+    this._createCircleParticles(this._circle_groups);
+    this._createLineParticles(this._line_groups);
+    this._createPolygonParticles(this._polygon_groups, 6);
     // reset background - antique white
     this.background("#FDF5EB");
   }
 
   draw() {
     if (this._particles.length > 0) {
-      // calculate canvas displacement due to border
+      // calculate canvas displacement due to this._border
       let x_displacement, y_displacement;
-      x_displacement = this.canvas.width * border;
-      y_displacement = this.canvas.height * border;
+      x_displacement = this.canvas.width * this._border;
+      y_displacement = this.canvas.height * this._border;
 
       this.ctx.save();
       this.ctx.translate(x_displacement, y_displacement);
