@@ -63,6 +63,28 @@ class Sketch {
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
+  antique_background() {
+    // add back color
+    this.background("hsla(33, 82%, 96%, 1)");
+    // add noise
+    let scl;
+    scl = 4;
+    let background_scl;
+    background_scl = 0.005;
+    for (let x = 0; x < this.canvas.width; x += scl) {
+      for (let y = 0; y < this.canvas.height; y += scl) {
+        let n, bri, alpha;
+        n = getNoise(x * background_scl, y * background_scl, 10000);
+        bri = n * (100 - 90) + 90;
+        n = getNoise(x * background_scl, y * background_scl, 20000);
+        alpha = n * (0.4 - 0.1) + 0.1;
+
+        this.ctx.fillStyle = `hsla(33, 82%, ${bri}%, ${alpha})`;
+        this.ctx.fillRect(x, y, scl, scl);
+      }
+    }
+  }
+
   click() {
     this.setup();
   }
@@ -256,7 +278,7 @@ class Sketch {
       let cx, cy, r, phi;
       cx = random_interval(width / 2, width / 3);
       cy = random_interval(height / 2, height / 3);
-      r = random_interval(width / 6, width / 16);
+      r = random_interval(width / 4, width / 8);
       if (rotated) {
         phi = random(TWO_PI);
       } else {
@@ -345,7 +367,7 @@ class Sketch {
       this._circle_groups = 0;
       this._line_groups = 0;
       this._polygon_groups = 0;
-      this._solid_polygon_groups = 1;
+      this._solid_polygon_groups = 0;
     }
 
   }
@@ -361,7 +383,7 @@ class Sketch {
     this._createPolygonParticles(this._polygon_groups, this._polygon_sides);
     this._createSolidPolygonParticles(this._solid_polygon_groups, this._polygon_sides);
     // reset background - antique white
-    this.background("#FDF5EB");
+    this.antique_background();
   }
 
   draw() {
