@@ -391,6 +391,8 @@ class Sketch {
       this._polygon_sides = 3;
       this._polygons_rotation = false;
     }
+
+    this._show_title = true;
   }
 
   _draw_title() {
@@ -423,7 +425,9 @@ class Sketch {
     // reset background - antique white
     this._antique_background();
     // draw title
-    this._draw_title();
+    if (this._show_title) {
+      this._draw_title();
+    }
   }
 
   draw() {
