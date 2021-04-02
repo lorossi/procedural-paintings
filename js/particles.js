@@ -1,22 +1,33 @@
 // Particle class
 class Particle {
-  constructor(x, y, width, height, hue_offset, hue_interval) {
+  constructor(x, y, width, height, hue_offset, hue_interval, life_factor, max_resets) {
     this._width = width;
     this._height = height;
     this._hue_offset = hue_offset;
     this._hue_interval = hue_interval;
 
+    if (life_factor === undefined) {
+      this._life_factor = 1;
+    } else {
+      this._life_factor = life_factor;
+    }
+
+    if (max_resets === undefined) {
+      this._max_resets = 5;
+    } else {
+      this._max_resets = max_resets;
+    }
+
     this._max_life = 150;
     this._min_life = 125;
     this._max_weight = 2;
-    this._life_factor = 1;
+
     this._max_vel = 2;
     let max_dist;
     max_dist = Math.sqrt(Math.pow(width / 2, 2) + Math.pow(height / 2, 2));
     this._pos_tolerance = max_dist / 20;
 
     this._resets = 0;
-    this._max_resets = 5;
 
     this._x = x;
     this._y = y;
@@ -28,12 +39,12 @@ class Particle {
     // reset particle to starting position
     this._resets++;
     // add some randomness
-    this._seed = random_interval(0, 10 * position_scl);
+    this._seed = rand.randomInterval(0, 10 * position_scl);
     this._pos = new Vector(this._x, this._y);
     this._prev_pos = this._pos.copy();
     // reset everything
-    this._sat_min = random_interval(80, 5);
-    this._bri_min = random_interval(40, 5);
+    this._sat_min = rand.randomInterval(80, 5);
+    this._bri_min = rand.randomInterval(40, 5);
     // reset hue, weight and life
     let n;
     n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 2000);
