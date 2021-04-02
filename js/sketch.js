@@ -66,7 +66,7 @@ class Sketch {
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
-  antique_background() {
+  _antique_background() {
     // add back color
     this.background("hsla(33, 82%, 96%, 1)");
     // add noise
@@ -192,7 +192,7 @@ class Sketch {
         y1 = rand.random(line_border, height - line_border);
         // calculate length of line
         line_length = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
-      } while (line_length < Math.min(width, height) / 12 || line_length > Math.max(width, height) / 2);
+      } while (line_length < Math.min(width, height) / 8 || line_length > Math.max(width, height) / 2);
       // hue interval and offset of the group
       let line_hue_interval;
       line_hue_interval = rand.randomInterval(50, 10);
@@ -349,6 +349,8 @@ class Sketch {
     this._sq_pixel_density = 0.04;
     this._linear_pixel_density = 1.2;
     this._ended = false;
+    this._title = this._seed.toString().slice(5);
+    // SHUFFLE THE TITLE https://stackfame.com/5-ways-to-shuffle-an-array-using-moder-javascript-es6
 
     // change THESE to make things work
     let auto;
@@ -385,6 +387,13 @@ class Sketch {
     }
   }
 
+  _draw_title() {
+    this.ctx.fillStyle = "black";
+    this.ctx.font = "48px LibreBaskervilleItalic";
+    this.ctx.textBaseline = "top";
+    this.ctx.fillText(this._title, 24, 24);
+  }
+
   setup() {
     // set parameters
     this._initParameters();
@@ -396,7 +405,9 @@ class Sketch {
     this._createPolygonParticles(this._polygon_groups, this._polygon_sides);
     this._createSolidPolygonParticles(this._solid_polygon_groups, this._polygon_sides);
     // reset background - antique white
-    this.antique_background();
+    this._antique_background();
+    // draw title
+    this._draw_title();
   }
 
   draw() {

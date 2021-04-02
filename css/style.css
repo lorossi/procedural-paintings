@@ -4,6 +4,13 @@ body *, body {
   overflow: hidden;
 }
 
+
+@font-face {
+  font-family: LibreBaskervilleItalic;
+  src: url(/src/fonts/LibreBaskerville-Italic.ttf);
+}
+
+
 .container {
   width: 100vw;
   height: 100vh;
@@ -16,4 +23,6 @@ body *, body {
 #sketch {
   min-width: 300px;
   min-height: 300px;
+
+  font-family: LibreBaskervilleItalic;
 }
