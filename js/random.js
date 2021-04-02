@@ -22,6 +22,10 @@ class Random {
     else if (a != undefined && b != undefined) return this._random_internal() * (b - a) + a;
   }
 
+  randomInt(a, b) {
+    return Math.floor(this.random(a, b));
+  }
+
   randomInterval(average, interval) {
     average = average || 0.5;
     interval = interval || 0.5;

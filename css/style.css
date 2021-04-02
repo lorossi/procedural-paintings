@@ -6,8 +6,10 @@ body *, body {
 
 
 @font-face {
-  font-family: LibreBaskervilleItalic;
-  src: url(/src/fonts/LibreBaskerville-Italic.ttf);
+  font-family: Plantin-Italic;
+  src: url(/src/fonts/Plantin-Italic.woff);
+  font-style: italic;
+  font-weight: 400;
 }
 
 

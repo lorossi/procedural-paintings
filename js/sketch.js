@@ -210,7 +210,7 @@ class Sketch {
         // create and push new particle
         let new_p;
         //new_p = new LineParticle(x0, y0, x1, y1, width, height, line_hue_offset, line_hue_interval);
-        new_p = new Particle(x, y, width, height, line_hue_offset, line_hue_interval, 0.5, 3);
+        new_p = new Particle(x, y, width, height, line_hue_offset, line_hue_interval, 0.5);
         this._particles.push(new_p);
       }
     }
@@ -347,10 +347,14 @@ class Sketch {
     this._border = 0.15;
     this._hue_offset = rand.random(360);
     this._sq_pixel_density = 0.04;
-    this._linear_pixel_density = 1.2;
+    this._linear_pixel_density = 1.8;
     this._ended = false;
-    this._title = this._seed.toString().slice(5);
-    // SHUFFLE THE TITLE https://stackfame.com/5-ways-to-shuffle-an-array-using-moder-javascript-es6
+    // to get the title, take the seed (current epoch), remove the
+    // last 3 digits (the msec) and shuffle it
+    // since the seed is set, the result will be deterministic
+    let title;
+    title = this._seed.toString().slice(0, 10);
+    this._title = string_shuffle(title);
 
     // change THESE to make things work
     let auto;
@@ -381,17 +385,29 @@ class Sketch {
     } else {
       this._free_groups = 0;
       this._circle_groups = 0;
-      this._line_groups = 4;
+      this._line_groups = 0;
       this._polygon_groups = 0;
       this._solid_polygon_groups = 0;
+      this._polygon_sides = 3;
+      this._polygons_rotation = false;
     }
   }
 
   _draw_title() {
-    this.ctx.fillStyle = "black";
-    this.ctx.font = "48px LibreBaskervilleItalic";
+    // background is more or less rgb(240,232,210) - #f0e8d2
+    // its complementary color would be (about) #2b240e
+
+    this.ctx.fillStyle = "#2b240eC8";
+    this.ctx.font = "60px Plantin-Italic";
+    this.ctx.textAlign = "left";
     this.ctx.textBaseline = "top";
-    this.ctx.fillText(this._title, 24, 24);
+    this.ctx.fillText(this._title, 20, 20);
+
+    this.ctx.fillStyle = "#2b240e64";
+    this.ctx.font = "30px Plantin-Italic";
+    this.ctx.textBaseline = "bottom";
+    this.ctx.textAlign = "right";
+    this.ctx.fillText("Lorenzo Rossi", this.canvas.height - 15, this.canvas.width - 10);
   }
 
   setup() {
@@ -402,8 +418,8 @@ class Sketch {
     this._createFreeParticles(this._free_groups);
     this._createCircleParticles(this._circle_groups);
     this._createLineParticles(this._line_groups);
-    this._createPolygonParticles(this._polygon_groups, this._polygon_sides);
-    this._createSolidPolygonParticles(this._solid_polygon_groups, this._polygon_sides);
+    this._createPolygonParticles(this._polygon_groups, this._polygon_sides, this._polygons_rotation);
+    this._createSolidPolygonParticles(this._solid_polygon_groups, this._polygon_sides, this._polygons_rotation);
     // reset background - antique white
     this._antique_background();
     // draw title
@@ -438,15 +454,33 @@ class Sketch {
   }
 }
 
-// ease percentage
+// ease number in range 0-1
 const ease = (x) => {
   return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 };
 
-// get noise for position
+// get noise for position, either 2D or 3D. Must be scaled
+// beforehand
 const getNoise = (x, y, z) => {
   let n;
   if (z === undefined) n = (1 + noise.simplex2(x, y)) / 2;
   else n = (1 + noise.simplex3(x, y, z)) / 2;
   return n;
+};
+
+// shuffle array
+const array_shuffle = (arr) => {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rand.randomInt(i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+};
+
+// shuffle string
+const string_shuffle = (string) => {
+  let arr;
+  arr = string.split("");
+  array_shuffle(arr);
+  arr = arr.join("");
+  return arr;
 };
