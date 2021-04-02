@@ -396,18 +396,19 @@ const ease = (x) => {
   return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 };
 
-// random (0-1) with no parameter, less than b with one parameter, between a and b with two parameters
+// random (0-1) with no parameter, (0, b) with one parameter, (a, b) with two parameters
 const random = (a, b) => {
-  if (a == undefined && b == undefined) return Math.random();
-  else if (b == undefined) return Math.random() * a;
+  if (a == undefined && b == undefined) return random(0, 1);
+  else if (b == undefined) return random(0, a);
   else if (a != undefined && b != undefined) return Math.random() * (b - a) + a;
 };
 
+// random in range[a, b]
 const random_int = (a, b) => {
-  return parseInt(random(a, b));
+  return parseInt(random(a, b + 1));
 };
 
-// random between average-interval and average+interval
+// random in (average-interval, average+interval)
 const random_interval = (average, interval) => {
   return average + (Math.random() * 2 - 1) * interval;
 };
