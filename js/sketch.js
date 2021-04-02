@@ -70,12 +70,12 @@ class Sketch {
     let scl;
     scl = 4;
     let background_scl;
-    background_scl = 0.005;
+    background_scl = 0.0075;
     for (let x = 0; x < this.canvas.width; x += scl) {
       for (let y = 0; y < this.canvas.height; y += scl) {
         let n, bri, alpha;
         n = getNoise(x * background_scl, y * background_scl, 10000);
-        bri = n * (100 - 90) + 90;
+        bri = n * (100 - 85) + 85;
         n = getNoise(x * background_scl, y * background_scl, 20000);
         alpha = n * (0.4 - 0.1) + 0.1;
 
