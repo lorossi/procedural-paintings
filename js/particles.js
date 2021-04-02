@@ -1,6 +1,6 @@
 // Particle class
 class Particle {
-  constructor(width, height, hue_offset, hue_interval) {
+  constructor(x, y, width, height, hue_offset, hue_interval) {
     this._width = width;
     this._height = height;
     this._hue_offset = hue_offset;
@@ -18,8 +18,8 @@ class Particle {
     this._resets = 0;
     this._max_resets = 5;
 
-    this._x = random(width);
-    this._y = random(height);
+    this._x = x;
+    this._y = y;
 
     this.reset();
   }
@@ -115,45 +115,5 @@ class Particle {
   // check if particle is dead
   get dead() {
     return this._resets > this._max_resets + 1;
-  }
-}
-
-class CircleParticle extends Particle {
-  constructor(cx, cy, radius, hue_offset, hue_interval) {
-    super();
-    this._hue_offset = hue_offset;
-    this._hue_interval = hue_interval;
-    this._pos_tolerance = radius / 40;
-
-    this._center = new Vector(cx, cy);
-    let rho, phi;
-    rho = random(0, radius);
-    phi = random(0, TWO_PI);
-    let starting_pos;
-    starting_pos = new Vector.fromAngle2D(phi).setMag(rho).add(this._center);
-    this._x = starting_pos.x;
-    this._y = starting_pos.y;
-    this.reset();
-  }
-}
-
-class LineParticle extends Particle {
-  constructor(x0, y0, x1, y1, width, height, hue_offset, hue_interval) {
-    super();
-    this._width = width;
-    this._height = height;
-    this._hue_offset = hue_offset;
-    this._hue_interval = hue_interval;
-
-    let length;
-    length = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
-    this._pos_tolerance = length / 40;
-
-    let t;
-    t = random();
-    this._x = x0 + t * (x1 - x0);
-    this._y = y0 + t * (y1 - y0);
-
-    this.reset();
   }
 }

@@ -100,8 +100,11 @@ class Sketch {
       free_particles_hue_interval = random(127, 180);
       for (let j = 0; j < free_particles_num; j++) {
         // create and push new particle
+        let x, y;
+        x = random(width);
+        y = random(height);
         let new_p;
-        new_p = new Particle(width, height, free_particles_hue_offset, free_particles_hue_interval);
+        new_p = new Particle(x, y, width, height, free_particles_hue_offset, free_particles_hue_interval);
         this._particles.push(new_p);
       }
     }
@@ -128,8 +131,14 @@ class Sketch {
       circle_particles_num = PI * Math.pow(r, 2) * 0.04;
       for (let j = 0; j < circle_particles_num; j++) {
         // create and push new particle
+        let rho, theta;
+        rho = random(0, r);
+        theta = random(TWO_PI);
+        let x, y;
+        x = cx + rho * Math.cos(theta);
+        y = cy + rho * Math.sin(theta);
         let new_p;
-        new_p = new CircleParticle(cx, cy, r, circle_hue_offset, circle_hue_interval);
+        new_p = new Particle(x, y, width, height, circle_hue_offset, circle_hue_interval);
         this._particles.push(new_p);
       }
     }
@@ -164,9 +173,15 @@ class Sketch {
       let line_particles_num;
       line_particles_num = line_length;
       for (let j = 0; j < line_particles_num; j++) {
+        let t;
+        t = random();
+        let x, y;
+        x = x0 + t * (x1 - x0);
+        y = y0 + t * (y1 - y0);
         // create and push new particle
         let new_p;
-        new_p = new LineParticle(x0, y0, x1, y1, width, height, line_hue_offset, line_hue_interval);
+        //new_p = new LineParticle(x0, y0, x1, y1, width, height, line_hue_offset, line_hue_interval);
+        new_p = new Particle(x, y, width, height, line_hue_offset, line_hue_interval);
         this._particles.push(new_p);
       }
     }
@@ -211,8 +226,76 @@ class Sketch {
         y1 = cy + r * Math.sin(end);
 
         for (let k = 0; k < side_points; k++) {
+          let t;
+          t = random();
+          let x, y;
+          x = x0 + t * (x1 - x0);
+          y = y0 + t * (y1 - y0);
           let new_p;
-          new_p = new LineParticle(x0, y0, x1, y1, width, height, polygon_hue_offset, polygon_hue_interval);
+          new_p = new Particle(x, y, width, height, polygon_hue_offset, polygon_hue_interval);
+          this._particles.push(new_p);
+        }
+      }
+    }
+  }
+
+  _createSolidPolygonParticles(groups, sides, rotated) {
+    sides = sides || 3;
+    rotated = rotated || false;
+
+    // particle boundaries
+    let width, height;
+    width = this.canvas.width * (1 - 2 * this._border);
+    height = this.canvas.height * (1 - 2 * this._border);
+    for (let i = 0; i < groups; i++) {
+      // hue interval and offset of the group
+      let polygon_hue_interval;
+      polygon_hue_interval = random_interval(50, 10);
+      let polygon_hue_offset;
+      polygon_hue_offset = random_interval(this._hue_offset, 10);
+      let cx, cy, r, phi;
+      cx = random_interval(width / 2, width / 3);
+      cy = random_interval(height / 2, height / 3);
+      r = random_interval(width / 6, width / 16);
+      if (rotated) {
+        phi = random(TWO_PI);
+      } else {
+        phi = 0;
+      }
+      let center;
+      center = new Vector(cx, cy);
+
+      for (let j = 0; j < sides; j++) {
+        let start, end;
+        start = j / sides * TWO_PI + phi;
+        end = (j + 1) / sides * TWO_PI + phi;
+        let x0, y0, x1, y1;
+        x0 = cx + r * Math.cos(start);
+        y0 = cy + r * Math.sin(start);
+        x1 = cx + r * Math.cos(end);
+        y1 = cy + r * Math.sin(end);
+        let side_length;
+        side_length = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
+        let p;
+        // semi perimeter
+        p = r + side_length / 2;
+        let triangle_area;
+        // heron's formula
+        triangle_area = Math.sqrt(p * (p - r) * (p - r) * (p - side_length));
+        let triangle_points;
+        triangle_points = triangle_area * 0.04;
+        for (let k = 0; k < triangle_points; k++) {
+          let s, t;
+          s = random();
+          t = random();
+          let xp, yp;
+          xp = x0 + s * (x1 - x0);
+          yp = y0 + s * (y1 - y0);
+          let x, y;
+          x = cx + t * (xp - cx);
+          y = cy + t * (yp - cy);
+          let new_p;
+          new_p = new Particle(x, y, width, height, polygon_hue_offset, polygon_hue_interval);
           this._particles.push(new_p);
         }
       }
@@ -233,29 +316,38 @@ class Sketch {
     this._hue_offset = random(360);
 
     // change THESE to make things work
-    let mode, auto;
-    mode = parseInt(random(4));
-    auto = true;
+    let auto;
+    auto = false;
 
-    this._free_groups = 0;
-    this._circle_groups = 0;
-    this._line_groups = 0;
-    this._polygon_groups = 0;
-
-    switch (mode && auto) {
-      case 0:
-        this._free_groups = random_int(2, 5);
-        break;
-      case 1:
-        this._circle_groups = random_int(4, 10);
-        break;
-      case 2:
-        this._line_groups = random_int(8, 13);
-        break;
-      case 3:
-        this._polygon_groups = random_int(3, 6);
-        this._polygon_sides = random_int(3, 7);
+    if (auto) {
+      let mode;
+      mode = random_int(0, 5);
+      switch (mode) {
+        case 0:
+          this._free_groups = random_int(2, 5);
+          break;
+        case 1:
+          this._circle_groups = random_int(4, 10);
+          break;
+        case 2:
+          this._line_groups = random_int(8, 13);
+          break;
+        case 3:
+          this._polygon_groups = random_int(3, 6);
+          this._polygon_sides = random_int(3, 7);
+          break;
+        case 4:
+          this._solid_polygon_groups = random_int(3, 6);
+          this._polygon_sides = random_int(3, 7);
+      }
+    } else {
+      this._free_groups = 0;
+      this._circle_groups = 0;
+      this._line_groups = 0;
+      this._polygon_groups = 0;
+      this._solid_polygon_groups = 1;
     }
+
   }
 
   setup() {
@@ -267,6 +359,7 @@ class Sketch {
     this._createCircleParticles(this._circle_groups);
     this._createLineParticles(this._line_groups);
     this._createPolygonParticles(this._polygon_groups, this._polygon_sides);
+    this._createSolidPolygonParticles(this._solid_polygon_groups, this._polygon_sides);
     // reset background - antique white
     this.background("#FDF5EB");
   }
@@ -312,7 +405,7 @@ const random = (a, b) => {
 
 const random_int = (a, b) => {
   return parseInt(random(a, b));
-}
+};
 
 // random between average-interval and average+interval
 const random_interval = (average, interval) => {
