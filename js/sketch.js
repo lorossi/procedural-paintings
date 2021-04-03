@@ -192,7 +192,7 @@ class Sketch {
         y1 = rand.random(line_border, height - line_border);
         // calculate length of line
         line_length = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
-      } while (line_length < Math.min(width, height) / 8 || line_length > Math.max(width, height) / 2);
+      } while (line_length < Math.min(width, height) / 4 || line_length > Math.max(width, height) / 2);
       // hue interval and offset of the group
       let line_hue_interval;
       line_hue_interval = rand.randomInterval(50, 10);
@@ -209,7 +209,7 @@ class Sketch {
         y = y0 + t * (y1 - y0);
         // create and push new particle
         let new_p;
-        new_p = new Particle(x, y, width, height, line_hue_offset, line_hue_interval, 0.75);
+        new_p = new Particle(x, y, width, height, line_hue_offset, line_hue_interval, 0.5, 3);
         this._particles.push(new_p);
       }
     }
@@ -415,6 +415,7 @@ class Sketch {
     this._sq_pixel_density = 0.04;
     this._linear_pixel_density = 1.5;
     this._ended = false;
+    this._max_particles_on_screen = 1000;
     // to get the title, take the seed (current epoch), remove the
     // last 3 digits (the msec) and shuffle it
     // since the seed is set, the result will be deterministic
@@ -518,14 +519,18 @@ class Sketch {
       this.ctx.save();
       this.ctx.translate(x_displacement, y_displacement);
       // draw main particles
-      this._particles.forEach(p => {
+      for (let i = 0; i < this._particles.length && i < this._max_particles_on_screen; i++) {
+        let p;
+        p = this._particles[i];
+
         p.show(this.ctx);
         p.move();
 
         if (p.replaceable) {
           p.reset();
         }
-      });
+      };
+
       // remove dead particles
       this._particles = this._particles.filter(p => !p.dead);
       this.ctx.restore();
