@@ -43,8 +43,8 @@ class Particle {
     this._pos = new Vector(this._x, this._y);
     this._prev_pos = this._pos.copy();
     // reset everything
-    this._sat_min = rand.randomInterval(50, 5);
-    this._bri_min = rand.randomInterval(25, 5);
+    this._sat_min = rand.randomInterval(80, 5);
+    this._bri_max = rand.randomInterval(75, 5);
     // reset hue, weight and life
     let n;
     n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 2000);
@@ -86,7 +86,7 @@ class Particle {
     let hue, sat, bri, alpha;
     hue = (this._hue + this._hue_offset);
     sat = (1 - eased) * (100 - this._sat_min) + this._sat_min;
-    bri = (1 - eased) * (50 - this._bri_min) + this._bri_min;
+    bri = (1 - eased) * (this._bri_max - 50) + 50;
     alpha = eased;
 
     if (hue < 0) hue += 360;

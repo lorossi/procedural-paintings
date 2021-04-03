@@ -197,7 +197,7 @@ class Sketch {
       let line_hue_interval;
       line_hue_interval = rand.randomInterval(50, 10);
       let line_hue_offset;
-      line_hue_offset = rand.randomInterval(this._hue_offset, 10);
+      line_hue_offset = rand.randomInterval(this._hue_offset, 5);
       // number of particles is proportional to the line length
       let line_particles_num;
       line_particles_num = line_length * this._linear_pixel_density;
@@ -209,8 +209,7 @@ class Sketch {
         y = y0 + t * (y1 - y0);
         // create and push new particle
         let new_p;
-        //new_p = new LineParticle(x0, y0, x1, y1, width, height, line_hue_offset, line_hue_interval);
-        new_p = new Particle(x, y, width, height, line_hue_offset, line_hue_interval, 0.5);
+        new_p = new Particle(x, y, width, height, line_hue_offset, line_hue_interval, 0.75);
         this._particles.push(new_p);
       }
     }
@@ -229,7 +228,7 @@ class Sketch {
       let polygon_hue_interval;
       polygon_hue_interval = rand.randomInterval(50, 10);
       let polygon_hue_offset;
-      polygon_hue_offset = rand.randomInterval(this._hue_offset, 10);
+      polygon_hue_offset = rand.randomInterval(this._hue_offset, 5);
       let cx, cy, r, phi;
       cx = rand.randomInterval(width / 2, width / 3);
       cy = rand.randomInterval(height / 2, height / 3);
@@ -281,7 +280,7 @@ class Sketch {
       let polygon_hue_interval;
       polygon_hue_interval = rand.randomInterval(50, 10);
       let polygon_hue_offset;
-      polygon_hue_offset = rand.randomInterval(this._hue_offset, 10);
+      polygon_hue_offset = rand.randomInterval(this._hue_offset, 5);
       let cx, cy, r, phi;
       cx = rand.randomInterval(width / 2, width / 3);
       cy = rand.randomInterval(height / 2, height / 3);
@@ -303,8 +302,8 @@ class Sketch {
         y1 = cy + r * Math.sin(end);
         let side_length;
         side_length = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
-        let p;
         // semi perimeter
+        let p;
         p = r + side_length / 2;
         let triangle_area;
         // heron's formula
@@ -313,7 +312,7 @@ class Sketch {
         triangle_points = triangle_area * this._sq_pixel_density;
         for (let k = 0; k < triangle_points; k++) {
           let s, t;
-          s = k / side_points;
+          s = rand.random();
           t = rand.random();
           // point between start and end (belongs to the border)
           let xp, yp;
@@ -325,6 +324,73 @@ class Sketch {
           y = cy + t * (yp - cy);
           let new_p;
           new_p = new Particle(x, y, width, height, polygon_hue_offset, polygon_hue_interval);
+          this._particles.push(new_p);
+        }
+      }
+    }
+  }
+
+  _createThickCenteredPolygonParticles(groups, sides, rotated, thickness) {
+    sides = sides || 3;
+    rotated = rotated || false;
+    thickness = thickness || rand.randomInterval(0.5, 0.25);
+
+    // particle boundaries
+    let width, height;
+    width = this.canvas.width * (1 - 2 * this._border);
+    height = this.canvas.height * (1 - 2 * this._border);
+
+    for (let i = 0; i < groups; i++) {
+      // hue interval and offset of the group
+      let polygon_hue_interval;
+      polygon_hue_interval = rand.randomInterval(50, 10);
+      let polygon_hue_offset;
+      polygon_hue_offset = rand.randomInterval(this._hue_offset, 5);
+      let cx, cy, r, phi;
+      cx = width / 2;
+      cy = height / 2;
+      r = rand.randomInterval(width / 3, width / 4);
+      if (rotated) {
+        phi = rand.random(TWO_PI);
+      } else {
+        phi = 0;
+      }
+
+      for (let j = 0; j < sides; j++) {
+        let start, end;
+        start = j / sides * TWO_PI + phi - HALF_PI;
+        end = (j + 1) / sides * TWO_PI + phi - HALF_PI;
+        let x0, y0, x1, y1;
+        x0 = cx + r * Math.cos(start);
+        y0 = cy + r * Math.sin(start);
+        x1 = cx + r * Math.cos(end);
+        y1 = cy + r * Math.sin(end);
+        let side_length;
+        side_length = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
+        let side_points;
+        side_points = side_length * this._linear_pixel_density;
+        let p;
+        // semi perimeter
+        p = r + side_length / 2;
+        let triangle_area;
+        // heron's formula
+        triangle_area = Math.sqrt(p * (p - r) * (p - r) * (p - side_length));
+        let triangle_points;
+        triangle_points = triangle_area * this._sq_pixel_density;
+        for (let k = 0; k < triangle_points; k++) {
+          let s, t;
+          s = rand.random();
+          t = rand.random(1 - thickness, 1);
+          // point between start and end (belongs to the border)
+          let xp, yp;
+          xp = x0 + s * (x1 - x0);
+          yp = y0 + s * (y1 - y0);
+          // point between center and border 
+          let x, y;
+          x = cx + t * (xp - cx);
+          y = cy + t * (yp - cy);
+          let new_p;
+          new_p = new Particle(x, y, width, height, polygon_hue_offset, polygon_hue_interval, 2);
           this._particles.push(new_p);
         }
       }
@@ -347,7 +413,7 @@ class Sketch {
     this._border = 0.15;
     this._hue_offset = rand.random(360);
     this._sq_pixel_density = 0.04;
-    this._linear_pixel_density = 1.8;
+    this._linear_pixel_density = 1.5;
     this._ended = false;
     // to get the title, take the seed (current epoch), remove the
     // last 3 digits (the msec) and shuffle it
@@ -362,7 +428,7 @@ class Sketch {
 
     if (auto) {
       let mode;
-      mode = rand.random_int(0, 5);
+      mode = rand.random_int(0, 6);
       switch (mode) {
         case 0:
           this._free_groups = rand.random_int(2, 5);
@@ -381,14 +447,22 @@ class Sketch {
           this._solid_polygon_groups = rand.random_int(3, 6);
           this._polygon_sides = rand.random_int(3, 7);
           break;
+        case 6:
+          this._thick_centered_polygon_groups = rand.random_int(1, 4);
+          this._polygon_sides = rand.random_int(3, 7);
+          this._polygon_thickness = rand.random(0.1, 0.5);
       }
+
+      this._polygons_rotation = rand.Random() < 0.2;
     } else {
       this._free_groups = 0;
       this._circle_groups = 0;
-      this._line_groups = 0;
+      this._line_groups = 8;
       this._polygon_groups = 0;
       this._solid_polygon_groups = 0;
+      this._thick_centered_polygon_groups = 0;
       this._polygon_sides = 3;
+      this._polygon_thickness = 0.25;
       this._polygons_rotation = false;
     }
 
@@ -398,18 +472,21 @@ class Sketch {
   _draw_title() {
     // background is more or less rgb(240,232,210) - #f0e8d2
     // its complementary color would be (about) #2b240e
+    let text_size;
 
-    this.ctx.fillStyle = "#2b240eC8";
-    this.ctx.font = "60px Plantin-Italic";
+    text_size = 40;
+    this.ctx.fillStyle = "#2b240648";
+    this.ctx.font = `${text_size}px Plantin-Italic`;
     this.ctx.textAlign = "left";
     this.ctx.textBaseline = "top";
-    this.ctx.fillText(this._title, 20, 20);
+    this.ctx.fillText(this._title, text_size / 2, text_size / 2);
 
+    text_size = 20;
     this.ctx.fillStyle = "#2b240e64";
-    this.ctx.font = "30px Plantin-Italic";
+    this.ctx.font = `${text_size}px Plantin-Italic`;
     this.ctx.textBaseline = "bottom";
     this.ctx.textAlign = "right";
-    this.ctx.fillText("Lorenzo Rossi", this.canvas.height - 15, this.canvas.width - 10);
+    this.ctx.fillText("Lorenzo Rossi", this.canvas.height - text_size / 2, this.canvas.width - text_size / 2);
   }
 
   setup() {
@@ -422,7 +499,8 @@ class Sketch {
     this._createLineParticles(this._line_groups);
     this._createPolygonParticles(this._polygon_groups, this._polygon_sides, this._polygons_rotation);
     this._createSolidPolygonParticles(this._solid_polygon_groups, this._polygon_sides, this._polygons_rotation);
-    // reset background - antique white
+    this._createThickCenteredPolygonParticles(this._thick_centered_polygon_groups, this._polygon_sides, this._polygons_rotation, this._polygon_thickness);
+    // reset background - antique white with random noise
     this._antique_background();
     // draw title
     if (this._show_title) {
