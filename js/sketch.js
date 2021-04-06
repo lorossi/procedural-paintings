@@ -115,6 +115,7 @@ class Sketch {
     free_particles_num = width * height * this._sq_pixel_density;
     // create particles
     for (let i = 0; i < groups; i++) {
+      let particles = [];
       // hue interval is different for each particle group
       let free_particles_hue_offset;
       free_particles_hue_offset = rand.randomInterval(this._hue_offset, 20);
@@ -127,8 +128,10 @@ class Sketch {
         y = rand.random(height);
         let new_p;
         new_p = new Particle(x, y, width, height, free_particles_hue_offset, free_particles_hue_interval);
-        this._particles.push(new_p);
+        particles.push(new_p);
       }
+
+      this._brushes.push(particles);
     }
   }
 
@@ -138,6 +141,7 @@ class Sketch {
     width = this.canvas.width * (1 - 2 * this._border);
     height = this.canvas.height * (1 - 2 * this._border);
     for (let i = 0; i < groups; i++) {
+      let particles = [];
       // center of the circular group
       let cx, cy, r;
       cx = rand.randomInterval(width / 2, width / 4);
@@ -161,8 +165,10 @@ class Sketch {
         y = cy + rho * Math.sin(theta);
         let new_p;
         new_p = new Particle(x, y, width, height, circle_hue_offset, circle_hue_interval);
-        this._particles.push(new_p);
+        particles.push(new_p);
       }
+
+      this._brushes.push(particles);
     }
   }
 
@@ -196,6 +202,8 @@ class Sketch {
       // number of particles is proportional to the line length
       let line_particles_num;
       line_particles_num = line_length * this._linear_pixel_density;
+
+      let particles = [];
       for (let j = 0; j < line_particles_num; j++) {
         let t;
         t = rand.random();
@@ -205,8 +213,10 @@ class Sketch {
         // create and push new particle
         let new_p;
         new_p = new Particle(x, y, width, height, line_hue_offset, line_hue_interval, 0.5, 3);
-        this._particles.push(new_p);
+        particles.push(new_p);
       }
+
+      this._brushes.push(particles);
     }
   }
 
@@ -238,6 +248,7 @@ class Sketch {
       side_length = 2 * r * Math.sin(PI / sides);
       let side_points;
       side_points = side_length * this._linear_pixel_density;
+      let particles = [];
       for (let j = 0; j < sides; j++) {
         let start, end;
         start = j / sides * TWO_PI + phi;
@@ -256,8 +267,10 @@ class Sketch {
           y = y0 + t * (y1 - y0);
           let new_p;
           new_p = new Particle(x, y, width, height, polygon_hue_offset, polygon_hue_interval, 0.75);
-          this._particles.push(new_p);
+          particles.push(new_p);
         }
+
+        this._brushes.push(particles);
       }
     }
   }
@@ -286,6 +299,7 @@ class Sketch {
         phi = 0;
       }
 
+      let particles = [];
       for (let j = 0; j < sides; j++) {
         let start, end;
         start = j / sides * TWO_PI + phi;
@@ -319,8 +333,9 @@ class Sketch {
           y = cy + t * (yp - cy);
           let new_p;
           new_p = new Particle(x, y, width, height, polygon_hue_offset, polygon_hue_interval);
-          this._particles.push(new_p);
+          particles.push(new_p);
         }
+        this._brushes.push(particles);
       }
     }
   }
@@ -351,6 +366,7 @@ class Sketch {
         phi = 0;
       }
 
+      let particles = [];
       for (let j = 0; j < sides; j++) {
         let start, end;
         start = j / sides * TWO_PI + phi - HALF_PI;
@@ -386,9 +402,10 @@ class Sketch {
           y = cy + t * (yp - cy);
           let new_p;
           new_p = new Particle(x, y, width, height, polygon_hue_offset, polygon_hue_interval, 2);
-          this._particles.push(new_p);
+          particles.push(new_p);
         }
       }
+      this._brushes.push(particles);
     }
   }
 
@@ -408,9 +425,10 @@ class Sketch {
     this._border = 0.15;
     this._hue_offset = rand.random(360);
     this._sq_pixel_density = 0.04;
-    this._linear_pixel_density = 1.5;
+    this._linear_pixel_density = 1;
     this._ended = false;
     this._max_particles_on_screen = 1000;
+    this._max_brushes_on_screen = 3;
     // to get the title, take the seed (current epoch), remove the
     // last 3 digits (the msec) and shuffle it
     // since the seed is set, the result will be deterministic
@@ -489,7 +507,8 @@ class Sketch {
     // set parameters
     this._initParameters();
     // create particles
-    this._particles = [];
+    this._brushes = [];
+
     this._createFreeParticles(this._free_groups);
     this._createCircleParticles(this._circle_groups);
     this._createLineParticles(this._line_groups);
@@ -505,32 +524,34 @@ class Sketch {
   }
 
   draw() {
-    if (this._particles.length > 0) {
+    if (this._brushes.length > 0) {
       // calculate canvas displacement due to this._border
       let x_displacement, y_displacement;
       x_displacement = this.canvas.width * this._border;
       y_displacement = this.canvas.height * this._border;
 
-      this.ctx.save();
-      this.ctx.translate(x_displacement, y_displacement);
-      // draw main particles
-      for (let i = 0; i < this._particles.length && i < this._max_particles_on_screen; i++) {
-        let p;
-        p = this._particles[i];
+      for (let b = 0; b < this._brushes.length && b < this._max_brushes_on_screen; b++) {
+        this.ctx.save();
+        this.ctx.translate(x_displacement, y_displacement);
 
-        p.show(this.ctx);
-        p.move();
+        for (let p = 0; p < this._brushes[b].length && p < this._max_particles_on_screen; p++) {
+          let particle;
+          particle = this._brushes[b][p];
+          particle.show(this.ctx);
+          particle.move();
 
-        if (p.replaceable) {
-          p.reset();
+          if (particle.replaceable) particle.reset();
         }
+
+        this.ctx.restore();
+
+        this._brushes[b] = this._brushes[b].filter(p => !p.dead);
+        if (this._brushes[b].length == 0) this._brushes[b].splice(b, 1);
       }
 
-      // remove dead particles
-      this._particles = this._particles.filter(p => !p.dead);
-      this.ctx.restore();
     } else if (!this._ended) {
       this._ended = true;
+      this.save();
       console.log("DONE");
     }
   }

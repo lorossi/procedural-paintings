@@ -39,11 +39,11 @@ class Particle {
     // reset particle to starting position
     this._resets++;
     // add some randomness
-    this._seed = rand.randomInterval(0, 10 * position_scl);
+    this._seed = rand.randomInterval(0, 15 * position_scl);
     this._pos = new Vector(this._x, this._y);
     this._prev_pos = this._pos.copy();
     // reset everything
-    this._sat_min = rand.randomInterval(60, 5);
+    this._sat_min = rand.randomInterval(30, 5);
     this._bri_max = rand.randomInterval(85, 5);
     // reset hue, weight and life
     let n;
