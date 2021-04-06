@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   // page loaded
   let canvas, ctx, s;
 
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
       s.click();
     });
 
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener("keydown", (e) => {
       if (e.key == "Enter") {
         s.save();
       }

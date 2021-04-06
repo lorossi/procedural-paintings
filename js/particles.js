@@ -13,7 +13,7 @@ class Particle {
     }
 
     if (max_resets === undefined) {
-      this._max_resets = 5;
+      this._max_resets = 3;
     } else {
       this._max_resets = max_resets;
     }
@@ -21,11 +21,8 @@ class Particle {
     this._max_life = 150;
     this._min_life = 125;
     this._max_weight = 2;
-
     this._max_vel = 2;
-    let max_dist;
-    max_dist = Math.sqrt(Math.pow(width / 2, 2) + Math.pow(height / 2, 2));
-    this._pos_tolerance = max_dist / 20;
+    this._wrap_around = true;
 
     this._resets = 0;
 
@@ -39,7 +36,7 @@ class Particle {
     // reset particle to starting position
     this._resets++;
     // add some randomness
-    this._seed = rand.randomInterval(0, 15 * position_scl);
+    this._seed = rand.randomInterval(0, 5 * position_scl);
     this._pos = new Vector(this._x, this._y);
     this._prev_pos = this._pos.copy();
     // reset everything
@@ -54,7 +51,7 @@ class Particle {
     n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 4000 + this._seed);
     this._life = n * (this._max_life - this._min_life) + this._min_life;
     // compute tolerances
-    this._life_tolerance = this._max_life / 20;
+    this._life_tolerance = rand.random(this._max_life / 10);
   }
 
   move() {
@@ -73,6 +70,27 @@ class Particle {
     this._pos.add(vel);
     // decrease life
     this._life -= this._life_factor;
+
+    if (this._wrap_around) {
+      if (this._pos.x < 0) {
+        this._pos.x = this._width;
+        this._prev_pos = this._pos.copy();
+      }
+      else if (this._pos.x > this._width) {
+        this._pos.x = 0;
+        this._prev_pos = this._pos.copy();
+      }
+
+      if (this._pos.y < 0) {
+        this._pos.y = this._height;
+        this._prev_pos = this._pos.copy();
+      }
+      else if (this._pos.y > this._height) {
+        this._pos.y = 0;
+        this._prev_pos = this._pos.copy();
+      }
+    }
+
   }
 
   show(ctx) {
@@ -89,17 +107,10 @@ class Particle {
     bri = (1 - eased) * (this._bri_max - 50) + 50;
     alpha = eased;
 
-    if (hue < 0) hue += 360;
-    else if (hue > 360) hue -= 360;
-
-    if (sat < 0) sat = 0;
-    else if (sat > 100) sat = 100;
-
-    if (bri < 0) bri = 0;
-    else if (bri > 100) bri = 100;
-
-    if (alpha < 0) alpha = 0;
-    else if (alpha > 1) alpha = 1;
+    this._wrap_variable(hue, 0, 360);
+    this._force_variable(sat);
+    this._force_variable(bri);
+    this._force_variable(alpha);
 
     // calculate stroke weight
     let weight;
@@ -114,13 +125,25 @@ class Particle {
     ctx.stroke();
   }
 
+  _wrap_variable(x, min = 0, max = 100) {
+    while (x < min) { x += (max - min); }
+    while (x > max) { x -= (max - min); }
+    return x;
+  }
+
+  _force_variable(x, min = 0, max = 100) {
+    if (x > max) x = max;
+    else if (x < min) x = min;
+    return x;
+  }
+
   // get if particle has to be replaced
   get replaceable() {
-    return this._pos.x < -this._pos_tolerance ||
-      this._pos.x > this._width + this._pos_tolerance ||
-      this._pos.y < -this._pos_tolerance ||
-      this._pos.y > this._height + this._pos_tolerance ||
-      this._life < -this._life_tolerance;
+    return this._pos.x < 0 ||
+      this._pos.x > this._width ||
+      this._pos.y < 0 ||
+      this._pos.y > this._height ||
+      this._life < 0;
   }
 
   // check if particle is dead

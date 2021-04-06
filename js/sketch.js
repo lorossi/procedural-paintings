@@ -81,8 +81,6 @@ class Sketch {
         let n, bri, alpha;
         n = getNoise(x * background_scl, y * background_scl, offset);
         bri = n * 30 + 50;
-        //n = getNoise(x * background_scl, y * background_scl, offset * 2);
-        //alpha = n * (0.3 - 0.1) + 0.1;
         alpha = 0.2;
         this.ctx.fillStyle = `hsla(45, 40%, ${bri}%, ${alpha})`;
         this.ctx.fillRect(x, y, scl, scl);
@@ -425,10 +423,10 @@ class Sketch {
     this._border = 0.15;
     this._hue_offset = rand.random(360);
     this._sq_pixel_density = 0.04;
-    this._linear_pixel_density = 1;
+    this._linear_pixel_density = 1.5;
     this._ended = false;
-    this._max_particles_on_screen = 1000;
-    this._max_brushes_on_screen = 3;
+    this._max_particles_on_screen = 5000;
+    this._max_brushes_on_screen = 5;
     // to get the title, take the seed (current epoch), remove the
     // last 3 digits (the msec) and shuffle it
     // since the seed is set, the result will be deterministic
@@ -445,7 +443,7 @@ class Sketch {
       mode = rand.random_int(0, 6);
       switch (mode) {
         case 0:
-          this._free_groups = rand.random_int(2, 5);
+          this._free_groups = rand.random_int(2, 4);
           break;
         case 1:
           this._circle_groups = rand.random_int(4, 10);
@@ -454,15 +452,15 @@ class Sketch {
           this._line_groups = rand.random_int(8, 13);
           break;
         case 3:
-          this._polygon_groups = rand.random_int(3, 6);
+          this._polygon_groups = rand.random_int(4, 10);
           this._polygon_sides = rand.random_int(3, 7);
           break;
         case 4:
-          this._solid_polygon_groups = rand.random_int(3, 6);
+          this._solid_polygon_groups = rand.random_int(5, 10);
           this._polygon_sides = rand.random_int(3, 7);
           break;
         case 6:
-          this._thick_centered_polygon_groups = rand.random_int(1, 4);
+          this._thick_centered_polygon_groups = 1;
           this._polygon_sides = rand.random_int(3, 7);
           this._polygon_thickness = rand.random(0.1, 0.5);
       }
@@ -546,7 +544,8 @@ class Sketch {
         this.ctx.restore();
 
         this._brushes[b] = this._brushes[b].filter(p => !p.dead);
-        if (this._brushes[b].length == 0) this._brushes[b].splice(b, 1);
+        if (this._brushes[b].length == 0) this._brushes.splice(b, 1);
+
       }
 
     } else if (!this._ended) {
