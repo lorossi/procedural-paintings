@@ -19,7 +19,12 @@ class Random {
   random(a, b) {
     if (a == undefined && b == undefined) return this.random(0, 1);
     else if (b == undefined) return this.random(0, a);
-    else if (a != undefined && b != undefined) return this._random_internal() * (b - a) + a;
+    else if (a != undefined && b != undefined) {
+      let m, M; // min and max
+      M = Math.max(a, b);
+      m = Math.min(a, b);
+      return this._random_internal() * (M - m) + m;
+    }
   }
 
   randomInt(a, b) {

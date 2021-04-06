@@ -107,7 +107,7 @@ class Sketch {
     document.body.removeChild(link);
   }
 
-  _createFreeParticles(groups) {
+  _createFreeParticles(brushes) {
     // particle boundaries
     let width, height;
     width = this.canvas.width * (1 - 2 * this._border);
@@ -115,9 +115,9 @@ class Sketch {
     let free_particles_num;
     free_particles_num = width * height * this._sq_pixel_density;
     // create particles
-    for (let i = 0; i < groups; i++) {
+    for (let i = 0; i < brushes; i++) {
       let particles = [];
-      // hue interval is different for each particle group
+      // hue interval is different for each particle brush
       let free_particles_hue_offset;
       free_particles_hue_offset = rand.randomInterval(this._hue_offset, 80);
       let free_particles_hue_interval;
@@ -136,19 +136,19 @@ class Sketch {
     }
   }
 
-  _createCircleParticles(groups) {
+  _createCircleParticles(brushes) {
     // particle boundaries
     let width, height;
     width = this.canvas.width * (1 - 2 * this._border);
     height = this.canvas.height * (1 - 2 * this._border);
-    for (let i = 0; i < groups; i++) {
+    for (let i = 0; i < brushes; i++) {
       let particles = [];
-      // center of the circular group
+      // center of the circular brush
       let cx, cy, r;
       cx = rand.randomInterval(width / 2, width / 4);
       cy = rand.randomInterval(height / 2, height / 4);
       r = rand.randomInterval(width / 6, width / 16);
-      // hue interval and offset of the group
+      // hue interval and offset of the brush
       let circle_hue_interval;
       circle_hue_interval = rand.randomInterval(75, 40);
       let circle_hue_offset;
@@ -173,14 +173,14 @@ class Sketch {
     }
   }
 
-  _createLineParticles(groups) {
+  _createLineParticles(brushes) {
     // particle boundaries
     let width, height;
     width = this.canvas.width * (1 - 2 * this._border);
     height = this.canvas.height * (1 - 2 * this._border);
     let line_border;
     line_border = 0.05 * width;
-    for (let i = 0; i < groups; i++) {
+    for (let i = 0; i < brushes; i++) {
       // keep generating new coordinates until minimum length is reached
       // line length
       let line_length;
@@ -195,7 +195,7 @@ class Sketch {
         // calculate length of line
         line_length = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
       } while (line_length < Math.min(width, height) / 4 || line_length > Math.max(width, height) / 2);
-      // hue interval and offset of the group
+      // hue interval and offset of the brush
       let line_hue_interval;
       line_hue_interval = rand.randomInterval(20, 60);
       let line_hue_offset;
@@ -221,7 +221,7 @@ class Sketch {
     }
   }
 
-  _createPolygonParticles(groups, sides, rotated) {
+  _createPolygonParticles(brushes, sides, rotated) {
     sides = sides || 3;
     rotated = rotated || true;
 
@@ -229,8 +229,8 @@ class Sketch {
     let width, height;
     width = this.canvas.width * (1 - 2 * this._border);
     height = this.canvas.height * (1 - 2 * this._border);
-    for (let i = 0; i < groups; i++) {
-      // hue interval and offset of the group
+    for (let i = 0; i < brushes; i++) {
+      // hue interval and offset of the brush
       let polygon_hue_interval;
       polygon_hue_interval = rand.randomInterval(20, 60);
       let polygon_hue_offset;
@@ -276,7 +276,7 @@ class Sketch {
     }
   }
 
-  _createSolidPolygonParticles(groups, sides, rotated) {
+  _createSolidPolygonParticles(brushes, sides, rotated) {
     sides = sides || 3;
     rotated = rotated || true;
 
@@ -284,8 +284,8 @@ class Sketch {
     let width, height;
     width = this.canvas.width * (1 - 2 * this._border);
     height = this.canvas.height * (1 - 2 * this._border);
-    for (let i = 0; i < groups; i++) {
-      // hue interval and offset of the group
+    for (let i = 0; i < brushes; i++) {
+      // hue interval and offset of the brush
       let polygon_hue_interval;
       polygon_hue_interval = rand.randomInterval(20, 60);
       let polygon_hue_offset;
@@ -341,18 +341,18 @@ class Sketch {
     }
   }
 
-  _createThickPolygonParticles(groups, sides, rotated, thickness) {
+  _createThickPolygonParticles(brushes, sides, rotated, thickness) {
     sides = sides || 3;
     rotated = rotated || true;
-    thickness = thickness || rand.randomInterval(0.5, 0.25);
+    thickness = thickness || rand.random(0.3, 0.6);
 
     // particle boundaries
     let width, height;
     width = this.canvas.width * (1 - 2 * this._border);
     height = this.canvas.height * (1 - 2 * this._border);
 
-    for (let i = 0; i < groups; i++) {
-      // hue interval and offset of the group
+    for (let i = 0; i < brushes; i++) {
+      // hue interval and offset of the brush
       let polygon_hue_interval;
       polygon_hue_interval = rand.randomInterval(20, 60);
       let polygon_hue_offset;
@@ -360,7 +360,7 @@ class Sketch {
       let cx, cy, r, phi;
       cx = width / 2;
       cy = height / 2;
-      r = rand.randomInterval(width / 4, width / 8);
+      r = rand.randomInterval(width / 3, width / 16);
       if (rotated) {
         phi = rand.random(TWO_PI);
       } else {
@@ -402,7 +402,7 @@ class Sketch {
           x = cx + t * (xp - cx);
           y = cy + t * (yp - cy);
           let new_p;
-          new_p = new Particle(x, y, width, height, polygon_hue_offset, polygon_hue_interval);
+          new_p = new Particle(x, y, width, height, polygon_hue_offset, polygon_hue_interval, 1, 2);
           particles.push(new_p);
         }
       }
@@ -425,18 +425,17 @@ class Sketch {
 
     this._border = 0.1;
     this._hue_offset = rand.random(360);
-    this._sq_pixel_density = 0.2;
+    this._sq_pixel_density = 0.01;
     this._linear_pixel_density = 1.5;
     this._ended = false;
-    this._max_particles_on_screen = 5000;
-    this._max_brushes_on_screen = 5;
+    this._max_particles_on_screen = 10000;
 
-    this._free_groups = 0;
-    this._circle_groups = 0;
-    this._line_groups = 0;
-    this._polygon_groups = 0;
-    this._solid_polygon_groups = 0;
-    this._thick_centered_polygon_groups = 0;
+    this._free_brushes = 0;
+    this._circle_brushes = 0;
+    this._line_brushes = 0;
+    this._polygon_brushes = 0;
+    this._solid_polygon_brushes = 0;
+    this._thick_polygon_brushes = 0;
     // to get the title, take the seed (current epoch), remove the
     // last 3 digits (the msec) and shuffle it
     // since the seed is set, the result will be deterministic
@@ -452,27 +451,29 @@ class Sketch {
       mode = counter;
     }
 
+    console.log({ mode: mode });
+
     switch (mode) {
       case 0:
-        this._free_groups = rand.randomInt(4, 6);
+        this._free_brushes = rand.randomInt(4, 7);
         break;
       case 1:
-        this._circle_groups = rand.randomInt(6, 10);
+        this._circle_brushes = rand.randomInt(4, 7);
         break;
       case 2:
-        this._line_groups = rand.randomInt(8, 13);
+        this._line_brushes = rand.randomInt(4, 7);
         break;
       case 3:
-        this._polygon_groups = rand.randomInt(7, 10);
-        this._polygon_sides = rand.randomInt(3, 7);
+        this._polygon_brushes = rand.randomInt(3, 7);
+        this._polygon_sides = rand.randomInt(5, 7);
         break;
       case 4:
-        this._solid_polygon_groups = rand.randomInt(7, 10);
-        this._polygon_sides = rand.randomInt(3, 7);
+        this._solid_polygon_brushes = rand.randomInt(4, 7);
+        this._polygon_sides = rand.randomInt(5, 7);
         break;
       case 5:
-        this._thick_centered_polygon_groups = 1;
-        this._polygon_sides = rand.randomInt(3, 7);
+        this._thick_polygon_brushes = rand.randomInt(3, 5);
+        this._polygon_sides = rand.randomInt(4, 7);
         this._polygon_thickness = rand.random(0.1, 0.75);
     }
 
@@ -520,12 +521,12 @@ class Sketch {
     // create particles
     this._brushes = [];
 
-    this._createFreeParticles(this._free_groups);
-    this._createCircleParticles(this._circle_groups);
-    this._createLineParticles(this._line_groups);
-    this._createPolygonParticles(this._polygon_groups, this._polygon_sides, this._polygons_rotation);
-    this._createSolidPolygonParticles(this._solid_polygon_groups, this._polygon_sides, this._polygons_rotation);
-    this._createThickPolygonParticles(this._thick_centered_polygon_groups, this._polygon_sides, this._polygons_rotation, this._polygon_thickness);
+    this._createFreeParticles(this._free_brushes);
+    this._createCircleParticles(this._circle_brushes);
+    this._createLineParticles(this._line_brushes);
+    this._createPolygonParticles(this._polygon_brushes, this._polygon_sides, this._polygons_rotation);
+    this._createSolidPolygonParticles(this._solid_polygon_brushes, this._polygon_sides, this._polygons_rotation);
+    this._createThickPolygonParticles(this._thick_polygon_brushes, this._polygon_sides, this._polygons_rotation, this._polygon_thickness);
     // reset background - antique white with random noise
     this._antique_background();
     // draw title
@@ -541,7 +542,7 @@ class Sketch {
       x_displacement = this.canvas.width * this._border;
       y_displacement = this.canvas.height * this._border;
 
-      for (let b = 0; b < this._brushes.length && b < this._max_brushes_on_screen; b++) {
+      for (let b = 0; b < this._brushes.length; b++) {
         this.ctx.save();
         this.ctx.translate(x_displacement, y_displacement);
 

@@ -1,22 +1,14 @@
 // Particle class
 class Particle {
-  constructor(x, y, width, height, hue_offset, hue_interval, life_factor, max_resets) {
+  constructor(x, y, width, height, hue_offset, hue_interval, life_factor = 1, max_resets = 3) {
     this._width = width;
     this._height = height;
     this._hue_offset = hue_offset;
     this._hue_interval = hue_interval;
 
-    if (life_factor === undefined) {
-      this._life_factor = 1;
-    } else {
-      this._life_factor = life_factor;
-    }
+    this._life_factor = life_factor;
+    this._max_resets = max_resets;
 
-    if (max_resets === undefined) {
-      this._max_resets = 3;
-    } else {
-      this._max_resets = max_resets;
-    }
 
     this._max_life = 150;
     this._min_life = 125;
