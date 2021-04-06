@@ -95,20 +95,15 @@ class Sketch {
   }
 
   save() {
-    let filename;
-    filename = this._seed + ".png";
-    let link;
-    link = $("<a></a>");
-    $("body").append(link);
-    // set filename
-    $(link).attr("download", filename);
-    // add link
-    $(link).attr("href", this.canvas.toDataURL("image/png"));
-    // click on it
-    $(link)[0].click();
-    // remove it
-    $(link).remove();
+    let filename, link;
+    filename = this._title + ".png";
+    link = document.createElement("a");
+    link.download = filename;
+    link.href = this.canvas.toDataURL("image/png");
+    document.body.appendChild(link);
 
+    link.click();
+    document.body.removeChild(link);
   }
 
   _createFreeParticles(groups) {

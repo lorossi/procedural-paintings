@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.addEventListener('keydown', (e) => {
-      console.log(e);
       if (e.key == "Enter") {
         s.save();
       }
