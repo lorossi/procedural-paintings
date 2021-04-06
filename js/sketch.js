@@ -1,5 +1,6 @@
 // parameters
 let position_scl, color_scl;
+let recording = false;
 
 // objects
 let rand;
@@ -357,7 +358,7 @@ class Sketch {
       let cx, cy, r, phi;
       cx = width / 2;
       cy = height / 2;
-      r = rand.randomInterval(width / 3, width / 4);
+      r = rand.randomInterval(width / 6, width / 8);
       if (rotated) {
         phi = rand.random(TWO_PI);
       } else {
@@ -399,7 +400,7 @@ class Sketch {
           x = cx + t * (xp - cx);
           y = cy + t * (yp - cy);
           let new_p;
-          new_p = new Particle(x, y, width, height, polygon_hue_offset, polygon_hue_interval, 2);
+          new_p = new Particle(x, y, width, height, polygon_hue_offset, polygon_hue_interval);
           particles.push(new_p);
         }
       }
@@ -420,7 +421,7 @@ class Sketch {
     position_scl = rand.randomInterval(0.002, 0.001);
     color_scl = rand.randomInterval(0.0005, 0.00025);
 
-    this._border = 0.15;
+    this._border = 0.05;
     this._hue_offset = rand.random(360);
     this._sq_pixel_density = 0.04;
     this._linear_pixel_density = 1.5;
@@ -462,23 +463,36 @@ class Sketch {
         case 6:
           this._thick_centered_polygon_groups = 1;
           this._polygon_sides = rand.random_int(3, 7);
-          this._polygon_thickness = rand.random(0.1, 0.5);
+          this._polygon_thickness = rand.random(0.1, 0.75);
       }
 
       this._polygons_rotation = rand.Random() < 0.2;
     } else {
       this._free_groups = 0;
       this._circle_groups = 0;
-      this._line_groups = 8;
+      this._line_groups = 0;
       this._polygon_groups = 0;
       this._solid_polygon_groups = 0;
       this._thick_centered_polygon_groups = 0;
-      this._polygon_sides = 3;
-      this._polygon_thickness = 0.25;
+      this._polygon_sides = 5;
+      this._polygon_thickness = 0.4;
       this._polygons_rotation = false;
     }
 
     this._show_title = true;
+
+    if (recording) {
+      this._capturer = new CCapture({
+        framerate: this.fps,
+        verbose: true,
+        format: 'png',
+        motionBlurFrames: true,
+        name: this._title,
+        autoSaveTime: 60,
+      });
+
+      this._capturer.start();
+    }
   }
 
   _draw_title() {
@@ -548,16 +562,27 @@ class Sketch {
 
       }
 
+      if (recording) {
+        this._capturer.capture(this.canvas);
+      }
+
     } else if (!this._ended) {
       this._ended = true;
       this.save();
+
+      if (recording) {
+        recording = false;
+        this._capturer.stop();
+        this._capturer.save();
+      }
+
       console.log("DONE");
     }
   }
 }
 
 // ease number in range 0-1
-const ease = (x) => {
+const ease = x => {
   return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 };
 
@@ -571,7 +596,7 @@ const getNoise = (x, y, z) => {
 };
 
 // shuffle array
-const array_shuffle = (arr) => {
+const array_shuffle = arr => {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(rand.randomInt(i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -579,7 +604,7 @@ const array_shuffle = (arr) => {
 };
 
 // shuffle string
-const string_shuffle = (string) => {
+const string_shuffle = string => {
   let arr;
   arr = string.split("");
   array_shuffle(arr);

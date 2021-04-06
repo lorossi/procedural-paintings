@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // inject canvas in page
   if (canvas.getContext) {
     ctx = canvas.getContext("2d", { alpha: false });
-    s = new Sketch(canvas, ctx);
+    s = new Sketch(canvas, ctx, 240);
     s.run();
   }
 
@@ -15,9 +15,15 @@ document.addEventListener("DOMContentLoaded", () => {
       s.click();
     });
 
-    document.addEventListener("keydown", (e) => {
+    document.addEventListener("keydown", e => {
       if (e.key == "Enter") {
         s.save();
+      } else if (e.key == "KeyR") {
+        recording = !recording;
+
+        if (recording) {
+          s.reset();
+        }
       }
     });
   }
