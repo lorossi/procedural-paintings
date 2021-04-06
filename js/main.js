@@ -1,9 +1,8 @@
-// main function
-$(document).ready(() => {
+document.addEventListener('DOMContentLoaded', () => {
+  // page loaded
   let canvas, ctx, s;
-  // canvas selector
-  canvas = $("#sketch")[0];
 
+  canvas = document.querySelector("#sketch");
   // inject canvas in page
   if (canvas.getContext) {
     ctx = canvas.getContext("2d", { alpha: false });
@@ -11,20 +10,16 @@ $(document).ready(() => {
     s.run();
   }
 
-  // wait for sketch load
   if (s != undefined) {
-    // handle clicks
-    $(canvas).click(() => {
+    canvas.addEventListener("click", () => {
       s.click();
     });
 
-    // handle keypress
-    $(document).keypress((e) => {
-      if (e.originalEvent.keyCode == 13) {
-        // enter
+    document.addEventListener('keydown', (e) => {
+      console.log(e);
+      if (e.key == "Enter") {
         s.save();
       }
     });
   }
-
 });

@@ -529,7 +529,7 @@ class Sketch {
         if (p.replaceable) {
           p.reset();
         }
-      };
+      }
 
       // remove dead particles
       this._particles = this._particles.filter(p => !p.dead);
