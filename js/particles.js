@@ -20,9 +20,9 @@ class Particle {
 
     this._max_life = 150;
     this._min_life = 125;
-    this._max_weight = 2;
-    this._max_vel = 2;
-    this._wrap_around = true;
+    this._max_weight = 2.5;
+    this._max_vel = 3;
+    this._wrap_around = false;
 
     this._resets = 0;
 

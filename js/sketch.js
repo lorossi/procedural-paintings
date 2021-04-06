@@ -1,6 +1,8 @@
 // parameters
 let position_scl, color_scl;
 let recording = false;
+let auto = false;
+let counter = 0;
 
 // objects
 let rand;
@@ -117,16 +119,16 @@ class Sketch {
       let particles = [];
       // hue interval is different for each particle group
       let free_particles_hue_offset;
-      free_particles_hue_offset = rand.randomInterval(this._hue_offset, 20);
+      free_particles_hue_offset = rand.randomInterval(this._hue_offset, 80);
       let free_particles_hue_interval;
-      free_particles_hue_interval = rand.random(127, 180);
+      free_particles_hue_interval = rand.random(140, 180);
       for (let j = 0; j < free_particles_num; j++) {
         // create and push new particle
         let x, y;
         x = rand.random(width);
         y = rand.random(height);
         let new_p;
-        new_p = new Particle(x, y, width, height, free_particles_hue_offset, free_particles_hue_interval);
+        new_p = new Particle(x, y, width, height, free_particles_hue_offset, free_particles_hue_interval, 2);
         particles.push(new_p);
       }
 
@@ -145,7 +147,7 @@ class Sketch {
       let cx, cy, r;
       cx = rand.randomInterval(width / 2, width / 4);
       cy = rand.randomInterval(height / 2, height / 4);
-      r = rand.randomInterval(width / 8, width / 16);
+      r = rand.randomInterval(width / 6, width / 16);
       // hue interval and offset of the group
       let circle_hue_interval;
       circle_hue_interval = rand.randomInterval(75, 40);
@@ -177,7 +179,7 @@ class Sketch {
     width = this.canvas.width * (1 - 2 * this._border);
     height = this.canvas.height * (1 - 2 * this._border);
     let line_border;
-    line_border = 0.1 * width;
+    line_border = 0.05 * width;
     for (let i = 0; i < groups; i++) {
       // keep generating new coordinates until minimum length is reached
       // line length
@@ -195,9 +197,9 @@ class Sketch {
       } while (line_length < Math.min(width, height) / 4 || line_length > Math.max(width, height) / 2);
       // hue interval and offset of the group
       let line_hue_interval;
-      line_hue_interval = rand.randomInterval(50, 10);
+      line_hue_interval = rand.randomInterval(20, 60);
       let line_hue_offset;
-      line_hue_offset = rand.randomInterval(this._hue_offset, 5);
+      line_hue_offset = rand.randomInterval(this._hue_offset, 20);
       // number of particles is proportional to the line length
       let line_particles_num;
       line_particles_num = line_length * this._linear_pixel_density;
@@ -221,7 +223,7 @@ class Sketch {
 
   _createPolygonParticles(groups, sides, rotated) {
     sides = sides || 3;
-    rotated = rotated || false;
+    rotated = rotated || true;
 
     // particle boundaries
     let width, height;
@@ -230,9 +232,9 @@ class Sketch {
     for (let i = 0; i < groups; i++) {
       // hue interval and offset of the group
       let polygon_hue_interval;
-      polygon_hue_interval = rand.randomInterval(50, 10);
+      polygon_hue_interval = rand.randomInterval(20, 60);
       let polygon_hue_offset;
-      polygon_hue_offset = rand.randomInterval(this._hue_offset, 5);
+      polygon_hue_offset = rand.randomInterval(this._hue_offset, 20);
       let cx, cy, r, phi;
       cx = rand.randomInterval(width / 2, width / 3);
       cy = rand.randomInterval(height / 2, height / 3);
@@ -268,15 +270,15 @@ class Sketch {
           new_p = new Particle(x, y, width, height, polygon_hue_offset, polygon_hue_interval, 0.75);
           particles.push(new_p);
         }
-
-        this._brushes.push(particles);
       }
+
+      this._brushes.push(particles);
     }
   }
 
   _createSolidPolygonParticles(groups, sides, rotated) {
     sides = sides || 3;
-    rotated = rotated || false;
+    rotated = rotated || true;
 
     // particle boundaries
     let width, height;
@@ -285,9 +287,9 @@ class Sketch {
     for (let i = 0; i < groups; i++) {
       // hue interval and offset of the group
       let polygon_hue_interval;
-      polygon_hue_interval = rand.randomInterval(50, 10);
+      polygon_hue_interval = rand.randomInterval(20, 60);
       let polygon_hue_offset;
-      polygon_hue_offset = rand.randomInterval(this._hue_offset, 5);
+      polygon_hue_offset = rand.randomInterval(this._hue_offset, 20);
       let cx, cy, r, phi;
       cx = rand.randomInterval(width / 2, width / 3);
       cy = rand.randomInterval(height / 2, height / 3);
@@ -334,14 +336,14 @@ class Sketch {
           new_p = new Particle(x, y, width, height, polygon_hue_offset, polygon_hue_interval);
           particles.push(new_p);
         }
-        this._brushes.push(particles);
       }
+      this._brushes.push(particles);
     }
   }
 
-  _createThickCenteredPolygonParticles(groups, sides, rotated, thickness) {
+  _createThickPolygonParticles(groups, sides, rotated, thickness) {
     sides = sides || 3;
-    rotated = rotated || false;
+    rotated = rotated || true;
     thickness = thickness || rand.randomInterval(0.5, 0.25);
 
     // particle boundaries
@@ -352,13 +354,13 @@ class Sketch {
     for (let i = 0; i < groups; i++) {
       // hue interval and offset of the group
       let polygon_hue_interval;
-      polygon_hue_interval = rand.randomInterval(50, 10);
+      polygon_hue_interval = rand.randomInterval(20, 60);
       let polygon_hue_offset;
-      polygon_hue_offset = rand.randomInterval(this._hue_offset, 5);
+      polygon_hue_offset = rand.randomInterval(this._hue_offset, 20);
       let cx, cy, r, phi;
       cx = width / 2;
       cy = height / 2;
-      r = rand.randomInterval(width / 6, width / 8);
+      r = rand.randomInterval(width / 4, width / 8);
       if (rotated) {
         phi = rand.random(TWO_PI);
       } else {
@@ -421,13 +423,20 @@ class Sketch {
     position_scl = rand.randomInterval(0.002, 0.001);
     color_scl = rand.randomInterval(0.0005, 0.00025);
 
-    this._border = 0.05;
+    this._border = 0.1;
     this._hue_offset = rand.random(360);
-    this._sq_pixel_density = 0.04;
+    this._sq_pixel_density = 0.2;
     this._linear_pixel_density = 1.5;
     this._ended = false;
     this._max_particles_on_screen = 5000;
     this._max_brushes_on_screen = 5;
+
+    this._free_groups = 0;
+    this._circle_groups = 0;
+    this._line_groups = 0;
+    this._polygon_groups = 0;
+    this._solid_polygon_groups = 0;
+    this._thick_centered_polygon_groups = 0;
     // to get the title, take the seed (current epoch), remove the
     // last 3 digits (the msec) and shuffle it
     // since the seed is set, the result will be deterministic
@@ -435,49 +444,39 @@ class Sketch {
     title = this._seed.toString().slice(0, 10);
     this._title = string_shuffle(title);
 
-    // change THESE to make things work
-    let auto;
-    auto = false;
+    let mode;
 
-    if (auto) {
-      let mode;
-      mode = rand.random_int(0, 6);
-      switch (mode) {
-        case 0:
-          this._free_groups = rand.random_int(2, 4);
-          break;
-        case 1:
-          this._circle_groups = rand.random_int(4, 10);
-          break;
-        case 2:
-          this._line_groups = rand.random_int(8, 13);
-          break;
-        case 3:
-          this._polygon_groups = rand.random_int(4, 10);
-          this._polygon_sides = rand.random_int(3, 7);
-          break;
-        case 4:
-          this._solid_polygon_groups = rand.random_int(5, 10);
-          this._polygon_sides = rand.random_int(3, 7);
-          break;
-        case 6:
-          this._thick_centered_polygon_groups = 1;
-          this._polygon_sides = rand.random_int(3, 7);
-          this._polygon_thickness = rand.random(0.1, 0.75);
-      }
-
-      this._polygons_rotation = rand.Random() < 0.2;
+    if (!auto) {
+      mode = rand.randomInt(6);
     } else {
-      this._free_groups = 0;
-      this._circle_groups = 0;
-      this._line_groups = 0;
-      this._polygon_groups = 0;
-      this._solid_polygon_groups = 0;
-      this._thick_centered_polygon_groups = 0;
-      this._polygon_sides = 5;
-      this._polygon_thickness = 0.4;
-      this._polygons_rotation = false;
+      mode = counter;
     }
+
+    switch (mode) {
+      case 0:
+        this._free_groups = rand.randomInt(4, 6);
+        break;
+      case 1:
+        this._circle_groups = rand.randomInt(6, 10);
+        break;
+      case 2:
+        this._line_groups = rand.randomInt(8, 13);
+        break;
+      case 3:
+        this._polygon_groups = rand.randomInt(7, 10);
+        this._polygon_sides = rand.randomInt(3, 7);
+        break;
+      case 4:
+        this._solid_polygon_groups = rand.randomInt(7, 10);
+        this._polygon_sides = rand.randomInt(3, 7);
+        break;
+      case 5:
+        this._thick_centered_polygon_groups = 1;
+        this._polygon_sides = rand.randomInt(3, 7);
+        this._polygon_thickness = rand.random(0.1, 0.75);
+    }
+
+    this._polygons_rotation = true;
 
     this._show_title = true;
 
@@ -526,7 +525,7 @@ class Sketch {
     this._createLineParticles(this._line_groups);
     this._createPolygonParticles(this._polygon_groups, this._polygon_sides, this._polygons_rotation);
     this._createSolidPolygonParticles(this._solid_polygon_groups, this._polygon_sides, this._polygons_rotation);
-    this._createThickCenteredPolygonParticles(this._thick_centered_polygon_groups, this._polygon_sides, this._polygons_rotation, this._polygon_thickness);
+    this._createThickPolygonParticles(this._thick_centered_polygon_groups, this._polygon_sides, this._polygons_rotation, this._polygon_thickness);
     // reset background - antique white with random noise
     this._antique_background();
     // draw title
@@ -571,12 +570,16 @@ class Sketch {
       this.save();
 
       if (recording) {
-        recording = false;
         this._capturer.stop();
         this._capturer.save();
+        counter++;
+        if (counter >= 6) {
+          recording = false;
+          console.log("Recording done!");
+        } else {
+          this._initParameters();
+        }
       }
-
-      console.log("DONE");
     }
   }
 }

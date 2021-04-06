@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // inject canvas in page
   if (canvas.getContext) {
     ctx = canvas.getContext("2d", { alpha: false });
-    s = new Sketch(canvas, ctx, 240);
+    s = new Sketch(canvas, ctx, 60);
     s.run();
   }
 
