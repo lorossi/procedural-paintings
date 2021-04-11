@@ -14,7 +14,7 @@ To generate a new canvas, `CLICK` (or `tap`, if you are unlyucky enough to be tr
 
 Each canvas is numered as it's unique.
 
-##Try it for yourself here: [lorenzoros.si/procedural-paintings/](https://lorenzoros.si/procedural-paintings/)
+## Try it for yourself here: [lorenzoros.si/procedural-paintings/](https://lorenzoros.si/procedural-paintings/)
 
 ## Images
 
