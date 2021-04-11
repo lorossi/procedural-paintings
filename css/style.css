@@ -1,9 +1,3 @@
-body *, body {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
 
 @font-face {
   font-family: Plantin-Italic;
@@ -12,6 +6,12 @@ body *, body {
   font-weight: 400;
 }
 
+body *, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: Plantin-Italic;
+}
 
 .container {
   width: 100vw;
@@ -23,8 +23,17 @@ body *, body {
 }
 
 #sketch {
-  min-width: 300px;
-  min-height: 300px;
+  width: 90vh;
+  height: 90vh;
 
   font-family: LibreBaskervilleItalic;
+}
+
+.footer {
+  position: absolute;
+  bottom: 1rem;
+  width: 100vw;
+  text-align: center;
+
+  font-size: 1rem;
 }

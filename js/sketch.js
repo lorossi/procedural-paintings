@@ -425,10 +425,10 @@ class Sketch {
 
     this._border = 0.1;
     this._hue_offset = rand.random(360);
-    this._sq_pixel_density = 0.01;
+    this._sq_pixel_density = 0.1;
     this._linear_pixel_density = 1.5;
     this._ended = false;
-    this._max_particles_on_screen = 10000;
+    this._max_particles_on_screen = 2500;
 
     this._free_brushes = 0;
     this._circle_brushes = 0;
@@ -450,8 +450,6 @@ class Sketch {
     } else {
       mode = counter;
     }
-
-    console.log({ mode: mode });
 
     switch (mode) {
       case 0:
@@ -568,7 +566,6 @@ class Sketch {
 
     } else if (!this._ended) {
       this._ended = true;
-      this.save();
 
       if (recording) {
         this._capturer.stop();
