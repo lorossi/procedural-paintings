@@ -150,7 +150,7 @@ class Sketch {
       r = rand.randomInterval(width / 6, width / 16);
       // hue interval and offset of the brush
       let circle_hue_interval;
-      circle_hue_interval = rand.randomInterval(75, 40);
+      circle_hue_interval = rand.random(20);
       let circle_hue_offset;
       circle_hue_offset = rand.randomInterval(this._hue_offset, 40);
       // number of particles in the circle, is proportional to its size
@@ -197,7 +197,7 @@ class Sketch {
       } while (line_length < Math.min(width, height) / 4 || line_length > Math.max(width, height) / 2);
       // hue interval and offset of the brush
       let line_hue_interval;
-      line_hue_interval = rand.randomInterval(20, 60);
+      line_hue_interval = rand.random(20);
       let line_hue_offset;
       line_hue_offset = rand.randomInterval(this._hue_offset, 20);
       // number of particles is proportional to the line length
@@ -213,7 +213,7 @@ class Sketch {
         y = y0 + t * (y1 - y0);
         // create and push new particle
         let new_p;
-        new_p = new Particle(x, y, width, height, line_hue_offset, line_hue_interval, 0.5, 3);
+        new_p = new Particle(x, y, width, height, line_hue_offset, line_hue_interval, 0.5);
         particles.push(new_p);
       }
 
@@ -232,7 +232,7 @@ class Sketch {
     for (let i = 0; i < brushes; i++) {
       // hue interval and offset of the brush
       let polygon_hue_interval;
-      polygon_hue_interval = rand.randomInterval(20, 60);
+      polygon_hue_interval = rand.random(20);
       let polygon_hue_offset;
       polygon_hue_offset = rand.randomInterval(this._hue_offset, 20);
       let cx, cy, r, phi;
@@ -287,7 +287,7 @@ class Sketch {
     for (let i = 0; i < brushes; i++) {
       // hue interval and offset of the brush
       let polygon_hue_interval;
-      polygon_hue_interval = rand.randomInterval(20, 60);
+      polygon_hue_interval = rand.random(20);
       let polygon_hue_offset;
       polygon_hue_offset = rand.randomInterval(this._hue_offset, 20);
       let cx, cy, r, phi;
@@ -354,7 +354,7 @@ class Sketch {
     for (let i = 0; i < brushes; i++) {
       // hue interval and offset of the brush
       let polygon_hue_interval;
-      polygon_hue_interval = rand.randomInterval(20, 60);
+      polygon_hue_interval = rand.random(5, 30);
       let polygon_hue_offset;
       polygon_hue_offset = rand.randomInterval(this._hue_offset, 20);
       let cx, cy, r, phi;
@@ -402,7 +402,7 @@ class Sketch {
           x = cx + t * (xp - cx);
           y = cy + t * (yp - cy);
           let new_p;
-          new_p = new Particle(x, y, width, height, polygon_hue_offset, polygon_hue_interval, 1, 2);
+          new_p = new Particle(x, y, width, height, polygon_hue_offset, polygon_hue_interval, 1);
           particles.push(new_p);
         }
       }
@@ -425,7 +425,7 @@ class Sketch {
 
     this._border = 0.1;
     this._hue_offset = rand.random(360);
-    this._sq_pixel_density = 0.1;
+    this._sq_pixel_density = 2;
     this._linear_pixel_density = 1.5;
     this._ended = false;
     this._max_particles_on_screen = 2500;

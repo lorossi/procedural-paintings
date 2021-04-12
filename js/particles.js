@@ -1,6 +1,6 @@
 // Particle class
 class Particle {
-  constructor(x, y, width, height, hue_offset, hue_interval, life_factor = 1, max_resets = 3) {
+  constructor(x, y, width, height, hue_offset, hue_interval, life_factor = 1, max_resets = 5) {
     this._width = width;
     this._height = height;
     this._hue_offset = hue_offset;
