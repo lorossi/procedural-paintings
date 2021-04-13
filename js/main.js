@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+  console.clear();
   // page loaded
   let canvas, ctx, s;
 

@@ -1,6 +1,6 @@
 // Particle class
 class Particle {
-  constructor(x, y, width, height, hue_offset, hue_interval, life_factor = 1, max_resets = 3) {
+  constructor(x, y, width, height, hue_offset, hue_interval, life_factor = 1, max_resets = 2) {
     this._width = width;
     this._height = height;
     this._hue_offset = hue_offset;
@@ -42,8 +42,8 @@ class Particle {
     this._weight = n * (this._max_weight - 0.5) + 0.5;
     n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 4000 + this._seed);
     this._life = n * (this._max_life - this._min_life) + this._min_life;
-    // compute tolerances
-    this._life_tolerance = rand.random(this._max_life / 30);
+    // compute tolerances - how much the particle can out outside the border
+    this._life_tolerance = rand.random(this._max_life / 50);
   }
 
   move() {
@@ -97,7 +97,7 @@ class Particle {
     hue = (this._hue + this._hue_offset);
     sat = (1 - eased) * (100 - this._sat_min) + this._sat_min;
     bri = (1 - eased) * (this._bri_max - 50) + 50;
-    alpha = eased;
+    alpha = eased * 0.5;
 
     this._wrap_variable(hue, 0, 360);
     this._force_variable(sat);
@@ -141,5 +141,9 @@ class Particle {
   // check if particle is dead
   get dead() {
     return this._resets > this._max_resets + 1;
+  }
+
+  get resets_frac() {
+    return this._resets / this._max_resets;
   }
 }

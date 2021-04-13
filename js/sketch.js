@@ -1,6 +1,6 @@
 // parameters
 let position_scl, color_scl;
-let auto_save = false;
+let auto_save = true;
 let recording = false;
 let auto = false;
 let counter = 0;
@@ -129,7 +129,7 @@ class Sketch {
         x = rand.random(width);
         y = rand.random(height);
         let new_p;
-        new_p = new Particle(x, y, width, height, free_particles_hue_offset, free_particles_hue_interval, 2);
+        new_p = new Particle(x, y, width, height, free_particles_hue_offset, free_particles_hue_interval, 2, 2);
         particles.push(new_p);
       }
 
@@ -148,7 +148,7 @@ class Sketch {
       let cx, cy, r;
       cx = rand.randomInterval(width / 2, width / 4);
       cy = rand.randomInterval(height / 2, height / 4);
-      r = rand.randomInterval(width / 6, width / 16);
+      r = rand.randomInterval(width / 4, width / 12);
       // hue interval and offset of the brush
       let circle_hue_interval;
       circle_hue_interval = rand.random(20);
@@ -200,7 +200,7 @@ class Sketch {
       let line_hue_interval;
       line_hue_interval = rand.random(20);
       let line_hue_offset;
-      line_hue_offset = rand.randomInterval(this._hue_offset, 5);
+      line_hue_offset = rand.randomInterval(this._hue_offset, 15);
       // number of particles is proportional to the line length
       let line_particles_num;
       line_particles_num = line_length * this._linear_pixel_density;
@@ -235,7 +235,7 @@ class Sketch {
       let polygon_hue_interval;
       polygon_hue_interval = rand.random(20);
       let polygon_hue_offset;
-      polygon_hue_offset = rand.randomInterval(this._hue_offset, 5);
+      polygon_hue_offset = rand.randomInterval(this._hue_offset, 15);
       let cx, cy, r, phi;
       cx = rand.randomInterval(width / 2, width / 3);
       cy = rand.randomInterval(height / 2, height / 3);
@@ -290,7 +290,7 @@ class Sketch {
       let polygon_hue_interval;
       polygon_hue_interval = rand.random(20);
       let polygon_hue_offset;
-      polygon_hue_offset = rand.randomInterval(this._hue_offset, 5);
+      polygon_hue_offset = rand.randomInterval(this._hue_offset, 15);
       let cx, cy, r, phi;
       cx = rand.randomInterval(width / 2, width / 3);
       cy = rand.randomInterval(height / 2, height / 3);
@@ -357,10 +357,10 @@ class Sketch {
       let polygon_hue_interval;
       polygon_hue_interval = rand.random(5, 30);
       let polygon_hue_offset;
-      polygon_hue_offset = rand.randomInterval(this._hue_offset, 5);
+      polygon_hue_offset = rand.randomInterval(this._hue_offset, 15);
       let cx, cy, r, phi;
-      cx = width / 2;
-      cy = height / 2;
+      cx = rand.randomInterval(1, 0.1) * width / 2;
+      cy = rand.randomInterval(1, 0.1) * height / 2;
       r = rand.randomInterval(width / 3, width / 16);
       if (rotated) {
         phi = rand.random(TWO_PI);
@@ -426,10 +426,10 @@ class Sketch {
 
     this._border = 0.15;
     this._hue_offset = rand.random(360);
-    this._sq_pixel_density = 1;
+    this._sq_pixel_density = 0.04;
     this._linear_pixel_density = 2;
     this._ended = false;
-    this._max_particles_on_screen = 2500;
+    this._max_particles_on_screen = 5000;
 
     this._free_brushes = 0;
     this._circle_brushes = 0;
@@ -437,6 +437,7 @@ class Sketch {
     this._polygon_brushes = 0;
     this._solid_polygon_brushes = 0;
     this._thick_polygon_brushes = 0;
+    this._percent = 0;
     // to get the title, take the seed (current epoch), remove the
     // last 3 digits (the msec) and shuffle it
     // since the seed is set, the result will be deterministic
@@ -454,13 +455,13 @@ class Sketch {
 
     switch (mode) {
       case 0:
-        this._free_brushes = 5;
+        this._free_brushes = 4;
         break;
       case 1:
-        this._circle_brushes = rand.randomInt(6, 10);
+        this._circle_brushes = rand.randomInt(8, 12);
         break;
       case 2:
-        this._line_brushes = rand.randomInt(6, 10);
+        this._line_brushes = rand.randomInt(8, 12);
         break;
       case 3:
         this._polygon_brushes = rand.randomInt(5, 8);
@@ -473,7 +474,7 @@ class Sketch {
       case 5:
         this._thick_polygon_brushes = rand.randomInt(5, 8);
         this._polygon_sides = rand.randomInt(4, 7);
-        this._polygon_thickness = rand.random(0.25, 0.75);
+        this._polygon_thickness = rand.random(0.15, 0.45);
     }
 
     this._polygons_rotation = true;
