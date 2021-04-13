@@ -454,7 +454,7 @@ class Sketch {
 
     switch (mode) {
       case 0:
-        this._free_brushes = rand.randomInt(4, 6);
+        this._free_brushes = 5;
         break;
       case 1:
         this._circle_brushes = rand.randomInt(6, 10);
