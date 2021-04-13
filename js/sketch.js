@@ -1,5 +1,6 @@
 // parameters
 let position_scl, color_scl;
+let auto_save = false;
 let recording = false;
 let auto = false;
 let counter = 0;
@@ -78,13 +79,13 @@ class Sketch {
     let offset;
     offset = rand.random(100000);
     let background_scl;
-    background_scl = 0.003;
+    background_scl = 0.004;
     for (let x = 0; x < this.canvas.width; x += scl) {
       for (let y = 0; y < this.canvas.height; y += scl) {
         let n, bri, alpha;
         n = getNoise(x * background_scl, y * background_scl, offset);
         bri = n * 30 + 50;
-        alpha = 0.2;
+        alpha = 0.25;
         this.ctx.fillStyle = `hsla(45, 40%, ${bri}%, ${alpha})`;
         this.ctx.fillRect(x, y, scl, scl);
       }
@@ -152,7 +153,7 @@ class Sketch {
       let circle_hue_interval;
       circle_hue_interval = rand.random(20);
       let circle_hue_offset;
-      circle_hue_offset = rand.randomInterval(this._hue_offset, 40);
+      circle_hue_offset = rand.randomInterval(this._hue_offset, 20);
       // number of particles in the circle, is proportional to its size
       let circle_particles_num;
       circle_particles_num = PI * Math.pow(r, 2) * this._sq_pixel_density;
@@ -199,7 +200,7 @@ class Sketch {
       let line_hue_interval;
       line_hue_interval = rand.random(20);
       let line_hue_offset;
-      line_hue_offset = rand.randomInterval(this._hue_offset, 20);
+      line_hue_offset = rand.randomInterval(this._hue_offset, 5);
       // number of particles is proportional to the line length
       let line_particles_num;
       line_particles_num = line_length * this._linear_pixel_density;
@@ -234,7 +235,7 @@ class Sketch {
       let polygon_hue_interval;
       polygon_hue_interval = rand.random(20);
       let polygon_hue_offset;
-      polygon_hue_offset = rand.randomInterval(this._hue_offset, 20);
+      polygon_hue_offset = rand.randomInterval(this._hue_offset, 5);
       let cx, cy, r, phi;
       cx = rand.randomInterval(width / 2, width / 3);
       cy = rand.randomInterval(height / 2, height / 3);
@@ -289,7 +290,7 @@ class Sketch {
       let polygon_hue_interval;
       polygon_hue_interval = rand.random(20);
       let polygon_hue_offset;
-      polygon_hue_offset = rand.randomInterval(this._hue_offset, 20);
+      polygon_hue_offset = rand.randomInterval(this._hue_offset, 5);
       let cx, cy, r, phi;
       cx = rand.randomInterval(width / 2, width / 3);
       cy = rand.randomInterval(height / 2, height / 3);
@@ -356,7 +357,7 @@ class Sketch {
       let polygon_hue_interval;
       polygon_hue_interval = rand.random(5, 30);
       let polygon_hue_offset;
-      polygon_hue_offset = rand.randomInterval(this._hue_offset, 20);
+      polygon_hue_offset = rand.randomInterval(this._hue_offset, 5);
       let cx, cy, r, phi;
       cx = width / 2;
       cy = height / 2;
@@ -420,13 +421,13 @@ class Sketch {
     rand.seed(this._seed);
 
     // set parameters
-    position_scl = rand.randomInterval(0.002, 0.001);
+    position_scl = rand.randomInterval(0.003, 0.001);
     color_scl = rand.randomInterval(0.0005, 0.00025);
 
-    this._border = 0.1;
+    this._border = 0.15;
     this._hue_offset = rand.random(360);
-    this._sq_pixel_density = 2;
-    this._linear_pixel_density = 1.5;
+    this._sq_pixel_density = 1;
+    this._linear_pixel_density = 2;
     this._ended = false;
     this._max_particles_on_screen = 2500;
 
@@ -453,26 +454,26 @@ class Sketch {
 
     switch (mode) {
       case 0:
-        this._free_brushes = rand.randomInt(4, 7);
+        this._free_brushes = rand.randomInt(4, 6);
         break;
       case 1:
-        this._circle_brushes = rand.randomInt(4, 7);
+        this._circle_brushes = rand.randomInt(6, 10);
         break;
       case 2:
-        this._line_brushes = rand.randomInt(4, 7);
+        this._line_brushes = rand.randomInt(6, 10);
         break;
       case 3:
-        this._polygon_brushes = rand.randomInt(3, 7);
+        this._polygon_brushes = rand.randomInt(5, 8);
         this._polygon_sides = rand.randomInt(5, 7);
         break;
       case 4:
-        this._solid_polygon_brushes = rand.randomInt(4, 7);
+        this._solid_polygon_brushes = rand.randomInt(6, 10);
         this._polygon_sides = rand.randomInt(5, 7);
         break;
       case 5:
-        this._thick_polygon_brushes = rand.randomInt(3, 5);
+        this._thick_polygon_brushes = rand.randomInt(5, 8);
         this._polygon_sides = rand.randomInt(4, 7);
-        this._polygon_thickness = rand.random(0.1, 0.75);
+        this._polygon_thickness = rand.random(0.25, 0.75);
     }
 
     this._polygons_rotation = true;
@@ -565,18 +566,25 @@ class Sketch {
       }
 
     } else if (!this._ended) {
+      console.log("Ended!");
       this._ended = true;
 
-      if (recording) {
-        this._capturer.stop();
-        this._capturer.save();
+      if (auto_save) {
+        this.save();
+      }
+
+      if (auto) {
         counter++;
-        if (counter >= 6) {
+
+        if (counter >= 6 && recording) {
           recording = false;
           console.log("Recording done!");
-        } else {
-          this._initParameters();
+        } else if (!recording) {
+          this.setup();
         }
+
+        counter = 0;
+        this._initParameters();
       }
     }
   }

@@ -1,6 +1,6 @@
 // Particle class
 class Particle {
-  constructor(x, y, width, height, hue_offset, hue_interval, life_factor = 1, max_resets = 5) {
+  constructor(x, y, width, height, hue_offset, hue_interval, life_factor = 1, max_resets = 3) {
     this._width = width;
     this._height = height;
     this._hue_offset = hue_offset;
@@ -32,8 +32,8 @@ class Particle {
     this._pos = new Vector(this._x, this._y);
     this._prev_pos = this._pos.copy();
     // reset everything
-    this._sat_min = rand.randomInterval(30, 5);
-    this._bri_max = rand.randomInterval(85, 5);
+    this._sat_min = rand.randomInterval(40, 5);
+    this._bri_max = rand.randomInterval(60, 5);
     // reset hue, weight and life
     let n;
     n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 2000);
@@ -43,7 +43,7 @@ class Particle {
     n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 4000 + this._seed);
     this._life = n * (this._max_life - this._min_life) + this._min_life;
     // compute tolerances
-    this._life_tolerance = rand.random(this._max_life / 10);
+    this._life_tolerance = rand.random(this._max_life / 20);
   }
 
   move() {
@@ -131,11 +131,11 @@ class Particle {
 
   // get if particle has to be replaced
   get replaceable() {
-    return this._pos.x < 0 ||
+    return (this._pos.x < 0 ||
       this._pos.x > this._width ||
       this._pos.y < 0 ||
-      this._pos.y > this._height ||
-      this._life < 0;
+      this._pos.y > this._height) &&
+      this._life < -this._life_tolerance;
   }
 
   // check if particle is dead
