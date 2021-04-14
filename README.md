@@ -21,7 +21,7 @@ Each canvas is numered as it's unique.
 ![image-1](output/procedural-painting-8956398119.png)
 ![image-2](output/procedural-painting-7411831160.png)
 ![image-3](output/procedural-painting-8251114162.png)
-![image-4](output/procedural-painting-1554061812.png)
+![image-4](output/procedural-painting-8771111462.png)
 ![image-5](output/procedural-painting-0116410884.png)
 ![image-6](output/procedural-painting-0463815316.png)
 ![image-7](output/procedural-painting-1164401815.png)
