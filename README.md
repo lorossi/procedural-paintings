@@ -18,16 +18,16 @@ Each canvas is numered as it's unique.
 
 ## Images
 
-![image-1]("output/procedural-painting-8956398119.png")
-![image-2]("output/procedural-painting-7411831160.png")
-![image-3]("output/procedural-painting-8251114162.png")
-![image-4]("output/procedural-painting-1554061812.png")
-![image-5]("output/procedural-painting-0116410884.png")
-![image-6]("output/procedural-painting-0463815316.png")
-![image-7]("output/procedural-painting-1164401815.png")
-![image-8]("output/procedural-painting-2071144826.png")
-![image-9]("output/procedural-painting-8608712415.png")
-![image-10]("output/procedural-painting-7141810916.png")
+![image-1](output/procedural-painting-8956398119.png)
+![image-2](output/procedural-painting-7411831160.png)
+![image-3](output/procedural-painting-8251114162.png)
+![image-4](output/procedural-painting-1554061812.png)
+![image-5](output/procedural-painting-0116410884.png)
+![image-6](output/procedural-painting-0463815316.png)
+![image-7](output/procedural-painting-1164401815.png)
+![image-8](output/procedural-painting-2071144826.png)
+![image-9](output/procedural-painting-8608712415.png)
+![image-10](output/procedural-painting-7141810916.png)
 
 Find more inside the `output` folder.
 
