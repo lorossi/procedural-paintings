@@ -2,7 +2,7 @@
 let position_scl, color_scl;
 let auto_save = true;
 let recording = false;
-let auto = false;
+let auto_progress = false;
 let counter = 0;
 
 // objects
@@ -110,64 +110,72 @@ class Sketch {
 
   _createFreeParticles(brushes) {
     // particle boundaries
-    let width, height;
-    width = this.canvas.width * (1 - 2 * this._border);
-    height = this.canvas.height * (1 - 2 * this._border);
-    let free_particles_num;
-    free_particles_num = width * height * this._sq_pixel_density;
+    const width = this.canvas.width * (1 - 2 * this._border);
+    const height = this.canvas.height * (1 - 2 * this._border);
+    const particles_num = width * height * this._sq_pixel_density;
     // create particles
     for (let i = 0; i < brushes; i++) {
       let particles = [];
       // hue interval is different for each particle brush
-      let free_particles_hue_offset;
-      free_particles_hue_offset = rand.randomInterval(this._hue_offset, 80);
-      let free_particles_hue_interval;
-      free_particles_hue_interval = rand.random(140, 180);
-      for (let j = 0; j < free_particles_num; j++) {
+      const hue_offset = rand.randomInterval(this._hue_offset, 80);
+      const hue_interval = rand.random(140, 180);
+      for (let j = 0; j < particles_num; j++) {
         // create and push new particle
-        let x, y;
-        x = rand.random(width);
-        y = rand.random(height);
-        let new_p;
-        new_p = new Particle(x, y, width, height, free_particles_hue_offset, free_particles_hue_interval, 2, 2);
-        particles.push(new_p);
+        const x = rand.random(width);
+        const y = rand.random(height);
+        particles.push(new Particle(x, y, width, height, hue_offset, hue_interval, 2, 2));
       }
 
       this._brushes.push(particles);
     }
   }
 
+  _createFreeCircleParticles(brushes) {
+    // particle boundaries
+    const radius = this.canvas.width / 2 * (1 - 2 * this._border);
+    const particles_num = Math.PI * (r ** 2) * this._sq_pixel_density;
+    // create particles
+    for (let i = 0; i < brushes; i++) {
+      let particles = [];
+      // hue interval is different for each particle brush
+      const hue_offset = rand.randomInterval(this._hue_offset, 80);
+      const hue_interval = rand.random(140, 180);
+      for (let j = 0; j < particles_num; j++) {
+        // create and push new particle
+        const rho = rand.random(radius);
+        const theta = rand.random(TWO_PI);
+
+        const x = rho * Math.cos(theta);
+        const y = rho * Math.sin(theta);
+        particles.push(new Particle(x, y, width, height, hue_offset, hue_interval, 2, 2));
+      }
+      this._brushes.push(particles);
+    }
+  }
+
   _createCircleParticles(brushes) {
     // particle boundaries
-    let width, height;
-    width = this.canvas.width * (1 - 2 * this._border);
-    height = this.canvas.height * (1 - 2 * this._border);
+    const width = this.canvas.width * (1 - 2 * this._border);
+    const height = this.canvas.height * (1 - 2 * this._border);
     for (let i = 0; i < brushes; i++) {
       let particles = [];
       // center of the circular brush
-      let cx, cy, r;
-      cx = rand.randomInterval(width / 2, width / 4);
-      cy = rand.randomInterval(height / 2, height / 4);
-      r = rand.randomInterval(width / 4, width / 12);
+      const cx = rand.randomInterval(width / 2, width / 4);
+      const cy = rand.randomInterval(height / 2, height / 4);
+      const r = rand.randomInterval(width / 4, width / 12);
       // hue interval and offset of the brush
-      let circle_hue_interval;
-      circle_hue_interval = rand.random(20);
-      let circle_hue_offset;
-      circle_hue_offset = rand.randomInterval(this._hue_offset, 20);
+      const hue_interval = rand.random(20);
+      const hue_offset = rand.randomInterval(this._hue_offset, 20);
       // number of particles in the circle, is proportional to its size
-      let circle_particles_num;
-      circle_particles_num = PI * Math.pow(r, 2) * this._sq_pixel_density;
-      for (let j = 0; j < circle_particles_num; j++) {
+      const particles_num = PI * Math.pow(r, 2) * this._sq_pixel_density;
+      for (let j = 0; j < particles_num; j++) {
         // create and push new particle
-        let rho, theta;
-        rho = rand.random(0, r);
-        theta = rand.random(TWO_PI);
-        let x, y;
-        x = cx + rho * Math.cos(theta);
-        y = cy + rho * Math.sin(theta);
-        let new_p;
-        new_p = new Particle(x, y, width, height, circle_hue_offset, circle_hue_interval);
-        particles.push(new_p);
+        const rho = rand.random(0, r);
+        const theta = rand.random(TWO_PI);
+
+        const x = cx + rho * Math.cos(theta);
+        const y = cy + rho * Math.sin(theta);
+        particles.push(new Particle(x, y, width, height, hue_offset, hue_interval));
       }
 
       this._brushes.push(particles);
@@ -176,11 +184,12 @@ class Sketch {
 
   _createLineParticles(brushes) {
     // particle boundaries
-    let width, height;
-    width = this.canvas.width * (1 - 2 * this._border);
-    height = this.canvas.height * (1 - 2 * this._border);
-    let line_border;
-    line_border = 0.05 * width;
+    const width = this.canvas.width * (1 - 2 * this._border);
+    const height = this.canvas.height * (1 - 2 * this._border);
+    const line_border = 0.05 * width;
+    const min_length = Math.min(width, height) / 4;
+    const max_length = Math.max(width, height) / 2;
+
     for (let i = 0; i < brushes; i++) {
       // keep generating new coordinates until minimum length is reached
       // line length
@@ -195,81 +204,60 @@ class Sketch {
         y1 = rand.random(line_border, height - line_border);
         // calculate length of line
         line_length = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
-      } while (line_length < Math.min(width, height) / 4 || line_length > Math.max(width, height) / 2);
+      } while (line_length < min_length || line_length > max_length);
       // hue interval and offset of the brush
-      let line_hue_interval;
-      line_hue_interval = rand.random(20);
-      let line_hue_offset;
-      line_hue_offset = rand.randomInterval(this._hue_offset, 15);
+      const hue_interval = rand.random(20);
+      const hue_offset = rand.randomInterval(this._hue_offset, 15);
       // number of particles is proportional to the line length
-      let line_particles_num;
-      line_particles_num = line_length * this._linear_pixel_density;
+      const particles_num = line_length * this._linear_pixel_density;
 
       let particles = [];
-      for (let j = 0; j < line_particles_num; j++) {
-        let t;
-        t = rand.random();
-        let x, y;
-        x = x0 + t * (x1 - x0);
-        y = y0 + t * (y1 - y0);
+      for (let j = 0; j < particles_num; j++) {
+        const t = rand.random();
+
+        const x = x0 + t * (x1 - x0);
+        const y = y0 + t * (y1 - y0);
         // create and push new particle
-        let new_p;
-        new_p = new Particle(x, y, width, height, line_hue_offset, line_hue_interval, 0.5);
-        particles.push(new_p);
+        particles.push(new Particle(x, y, width, height, hue_offset, hue_interval, 0.5));
       }
 
       this._brushes.push(particles);
     }
   }
 
-  _createPolygonParticles(brushes, sides, rotated) {
-    sides = sides || 3;
-    rotated = rotated || true;
-
+  _createPolygonParticles(brushes, sides = 3, rotated = true) {
     // particle boundaries
-    let width, height;
-    width = this.canvas.width * (1 - 2 * this._border);
-    height = this.canvas.height * (1 - 2 * this._border);
+    const width = this.canvas.width * (1 - 2 * this._border);
+    const height = this.canvas.height * (1 - 2 * this._border);
     for (let i = 0; i < brushes; i++) {
       // hue interval and offset of the brush
-      let polygon_hue_interval;
-      polygon_hue_interval = rand.random(20);
-      let polygon_hue_offset;
-      polygon_hue_offset = rand.randomInterval(this._hue_offset, 15);
-      let cx, cy, r, phi;
-      cx = rand.randomInterval(width / 2, width / 3);
-      cy = rand.randomInterval(height / 2, height / 3);
-      r = rand.randomInterval(width / 6, width / 16);
-      if (rotated) {
-        phi = rand.random(TWO_PI);
-      } else {
-        phi = 0;
-      }
+      const hue_interval = rand.random(20);
+      const hue_offset = rand.randomInterval(this._hue_offset, 15);
+      // location
+      const phi = rotated ? rand.random(TWO_PI) : 0;
+      const cx = rand.randomInterval(width / 2, width / 3);
+      const cy = rand.randomInterval(height / 2, height / 3);
+      const r = rand.randomInterval(width / 6, width / 16);
 
-      let side_length;
-      side_length = 2 * r * Math.sin(PI / sides);
-      let side_points;
-      side_points = side_length * this._linear_pixel_density;
+      const side_length = 2 * r * Math.sin(PI / sides);
+      const side_points = side_length * this._linear_pixel_density;
+
       let particles = [];
       for (let j = 0; j < sides; j++) {
-        let start, end;
-        start = j / sides * TWO_PI + phi;
-        end = (j + 1) / sides * TWO_PI + phi;
-        let x0, y0, x1, y1;
-        x0 = cx + r * Math.cos(start);
-        y0 = cy + r * Math.sin(start);
-        x1 = cx + r * Math.cos(end);
-        y1 = cy + r * Math.sin(end);
+        const start = j / sides * TWO_PI + phi;
+        const end = (j + 1) / sides * TWO_PI + phi;
+
+        const x0 = cx + r * Math.cos(start);
+        const y0 = cy + r * Math.sin(start);
+        const x1 = cx + r * Math.cos(end);
+        const y1 = cy + r * Math.sin(end);
 
         for (let k = 0; k < side_points; k++) {
-          let t;
-          t = k / side_points;
-          let x, y;
-          x = x0 + t * (x1 - x0);
-          y = y0 + t * (y1 - y0);
-          let new_p;
-          new_p = new Particle(x, y, width, height, polygon_hue_offset, polygon_hue_interval, 0.75);
-          particles.push(new_p);
+          const t = k / side_points;
+
+          const x = x0 + t * (x1 - x0);
+          const y = y0 + t * (y1 - y0);
+          particles.push(new Particle(x, y, width, height, hue_offset, hue_interval, 0.75));
         }
       }
 
@@ -277,134 +265,95 @@ class Sketch {
     }
   }
 
-  _createSolidPolygonParticles(brushes, sides, rotated) {
-    sides = sides || 3;
-    rotated = rotated || true;
-
+  _createSolidPolygonParticles(brushes, sides = 3, rotated = true) {
     // particle boundaries
-    let width, height;
-    width = this.canvas.width * (1 - 2 * this._border);
-    height = this.canvas.height * (1 - 2 * this._border);
+    const width = this.canvas.width * (1 - 2 * this._border);
+    const height = this.canvas.height * (1 - 2 * this._border);
     for (let i = 0; i < brushes; i++) {
       // hue interval and offset of the brush
-      let polygon_hue_interval;
-      polygon_hue_interval = rand.random(20);
-      let polygon_hue_offset;
-      polygon_hue_offset = rand.randomInterval(this._hue_offset, 15);
-      let cx, cy, r, phi;
-      cx = rand.randomInterval(width / 2, width / 3);
-      cy = rand.randomInterval(height / 2, height / 3);
-      r = rand.randomInterval(width / 4, width / 8);
-      if (rotated) {
-        phi = rand.random(TWO_PI);
-      } else {
-        phi = 0;
-      }
+      const hue_interval = rand.random(20);
+      const hue_offset = rand.randomInterval(this._hue_offset, 15);
+      // location
+      const phi = rotated ? rand.random(TWO_PI) : 0;
+      const cx = rand.randomInterval(width / 2, width / 3);
+      const cy = rand.randomInterval(height / 2, height / 3);
+      const r = rand.randomInterval(width / 4, width / 8);
 
       let particles = [];
       for (let j = 0; j < sides; j++) {
-        let start, end;
-        start = j / sides * TWO_PI + phi;
-        end = (j + 1) / sides * TWO_PI + phi;
-        let x0, y0, x1, y1;
-        x0 = cx + r * Math.cos(start);
-        y0 = cy + r * Math.sin(start);
-        x1 = cx + r * Math.cos(end);
-        y1 = cy + r * Math.sin(end);
-        let side_length;
-        side_length = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
+        const start = j / sides * TWO_PI + phi;
+        const end = (j + 1) / sides * TWO_PI + phi;
+
+        const x0 = cx + r * Math.cos(start);
+        const y0 = cy + r * Math.sin(start);
+        const x1 = cx + r * Math.cos(end);
+        const y1 = cy + r * Math.sin(end);
+
+        const side_length = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
         // semi perimeter
-        let p;
-        p = r + side_length / 2;
-        let triangle_area;
+        const p = r + side_length / 2;
         // heron's formula
-        triangle_area = Math.sqrt(p * (p - r) * (p - r) * (p - side_length));
-        let triangle_points;
-        triangle_points = triangle_area * this._sq_pixel_density;
-        for (let k = 0; k < triangle_points; k++) {
-          let s, t;
-          s = rand.random();
-          t = rand.random();
+        const triangle_area = Math.sqrt(p * (p - r) * (p - r) * (p - side_length));
+        const particles_num = triangle_area * this._sq_pixel_density;
+        for (let k = 0; k < particles_num; k++) {
+          const s = rand.random();
+          const t = rand.random();
           // point between start and end (belongs to the border)
-          let xp, yp;
-          xp = x0 + s * (x1 - x0);
-          yp = y0 + s * (y1 - y0);
+          const xp = x0 + s * (x1 - x0);
+          const yp = y0 + s * (y1 - y0);
           // point between center and border 
-          let x, y;
-          x = cx + t * (xp - cx);
-          y = cy + t * (yp - cy);
-          let new_p;
-          new_p = new Particle(x, y, width, height, polygon_hue_offset, polygon_hue_interval);
-          particles.push(new_p);
+          const x = cx + t * (xp - cx);
+          const y = cy + t * (yp - cy);
+
+          particles.push(new Particle(x, y, width, height, hue_offset, hue_interval));
         }
       }
       this._brushes.push(particles);
     }
   }
 
-  _createThickPolygonParticles(brushes, sides, rotated, thickness) {
-    sides = sides || 3;
-    rotated = rotated || true;
-    thickness = thickness || rand.random(0.3, 0.6);
-
+  _createThickPolygonParticles(brushes, sides = 3, rotated = true, thickness = 0.5) {
     // particle boundaries
-    let width, height;
-    width = this.canvas.width * (1 - 2 * this._border);
-    height = this.canvas.height * (1 - 2 * this._border);
+    const width = this.canvas.width * (1 - 2 * this._border);
+    const height = this.canvas.height * (1 - 2 * this._border);
 
     for (let i = 0; i < brushes; i++) {
       // hue interval and offset of the brush
-      let polygon_hue_interval;
-      polygon_hue_interval = rand.random(5, 30);
-      let polygon_hue_offset;
-      polygon_hue_offset = rand.randomInterval(this._hue_offset, 15);
-      let cx, cy, r, phi;
-      cx = rand.randomInterval(1, 0.1) * width / 2;
-      cy = rand.randomInterval(1, 0.1) * height / 2;
-      r = rand.randomInterval(width / 3, width / 16);
-      if (rotated) {
-        phi = rand.random(TWO_PI);
-      } else {
-        phi = 0;
-      }
+      const hue_interval = rand.random(5, 30);
+      const hue_offset = rand.randomInterval(this._hue_offset, 15);
+      // location
+      const phi = rotated ? rand.random(TWO_PI) : 0;
+      const cx = rand.randomInterval(1, 0.1) * width / 2;
+      const cy = rand.randomInterval(1, 0.1) * height / 2;
+      const r = rand.randomInterval(width / 3, width / 16);
 
       let particles = [];
       for (let j = 0; j < sides; j++) {
-        let start, end;
-        start = j / sides * TWO_PI + phi - HALF_PI;
-        end = (j + 1) / sides * TWO_PI + phi - HALF_PI;
-        let x0, y0, x1, y1;
-        x0 = cx + r * Math.cos(start);
-        y0 = cy + r * Math.sin(start);
-        x1 = cx + r * Math.cos(end);
-        y1 = cy + r * Math.sin(end);
-        let side_length;
-        side_length = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
-        let side_points;
-        side_points = side_length * this._linear_pixel_density;
-        let p;
+        const start = j / sides * TWO_PI + phi - HALF_PI;
+        const end = (j + 1) / sides * TWO_PI + phi - HALF_PI;
+
+        const x0 = cx + r * Math.cos(start);
+        const y0 = cy + r * Math.sin(start);
+        const x1 = cx + r * Math.cos(end);
+        const y1 = cy + r * Math.sin(end);
+
+        const side_length = Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
         // semi perimeter
-        p = r + side_length / 2;
-        let triangle_area;
+        const p = r + side_length / 2;
         // heron's formula
-        triangle_area = Math.sqrt(p * (p - r) * (p - r) * (p - side_length));
-        let triangle_points;
-        triangle_points = triangle_area * this._sq_pixel_density;
-        for (let k = 0; k < triangle_points; k++) {
-          let s, t;
-          s = rand.random();
-          t = rand.random(1 - thickness, 1);
+        const triangle_area = Math.sqrt(p * (p - r) * (p - r) * (p - side_length));
+        const particles_num = triangle_area * this._sq_pixel_density;
+        for (let k = 0; k < particles_num; k++) {
+          const s = rand.random();
+          const t = rand.random(1 - thickness, 1);
           // point between start and end (belongs to the border)
-          let xp, yp;
-          xp = x0 + s * (x1 - x0);
-          yp = y0 + s * (y1 - y0);
-          // point between center and border 
-          let x, y;
-          x = cx + t * (xp - cx);
-          y = cy + t * (yp - cy);
-          let new_p;
-          new_p = new Particle(x, y, width, height, polygon_hue_offset, polygon_hue_interval, 1);
-          particles.push(new_p);
+          const xp = x0 + s * (x1 - x0);
+          const yp = y0 + s * (y1 - y0);
+          // point between center and border
+          const x = cx + t * (xp - cx);
+          const y = cy + t * (yp - cy);
+
+          particles.push(new Particle(x, y, width, height, hue_offset, hue_interval, 1));
         }
       }
       this._brushes.push(particles);
@@ -431,12 +380,15 @@ class Sketch {
     this._ended = false;
     this._max_particles_on_screen = 5000;
 
+    this._modes = 7;
     this._free_brushes = 0;
+    this._free_circle_brushes = 0;
     this._circle_brushes = 0;
     this._line_brushes = 0;
     this._polygon_brushes = 0;
     this._solid_polygon_brushes = 0;
     this._thick_polygon_brushes = 0;
+
     this._percent = 0;
     // to get the title, take the seed (current epoch), remove the
     // last 3 digits (the msec) and shuffle it
@@ -447,8 +399,8 @@ class Sketch {
 
     let mode;
 
-    if (!auto) {
-      mode = rand.randomInt(6);
+    if (!auto_progress) {
+      mode = rand.randomInt(this._modes);
     } else {
       mode = counter;
     }
@@ -458,20 +410,23 @@ class Sketch {
         this._free_brushes = 4;
         break;
       case 1:
-        this._circle_brushes = rand.randomInt(8, 12);
+        this._free_circle_brushes = 4;
         break;
       case 2:
-        this._line_brushes = rand.randomInt(8, 12);
+        this._circle_brushes = rand.randomInt(8, 12);
         break;
       case 3:
+        this._line_brushes = rand.randomInt(8, 12);
+        break;
+      case 4:
         this._polygon_brushes = rand.randomInt(5, 8);
         this._polygon_sides = rand.randomInt(5, 7);
         break;
-      case 4:
+      case 5:
         this._solid_polygon_brushes = rand.randomInt(6, 10);
         this._polygon_sides = rand.randomInt(5, 7);
         break;
-      case 5:
+      case 6:
         this._thick_polygon_brushes = rand.randomInt(5, 8);
         this._polygon_sides = rand.randomInt(4, 7);
         this._polygon_thickness = rand.random(0.15, 0.45);
@@ -538,9 +493,8 @@ class Sketch {
   draw() {
     if (this._brushes.length > 0) {
       // calculate canvas displacement due to this._border
-      let x_displacement, y_displacement;
-      x_displacement = this.canvas.width * this._border;
-      y_displacement = this.canvas.height * this._border;
+      const x_displacement = this.canvas.width * this._border;
+      const y_displacement = this.canvas.height * this._border;
 
       for (let b = 0; b < this._brushes.length; b++) {
         this.ctx.save();
@@ -557,6 +511,7 @@ class Sketch {
 
         this.ctx.restore();
 
+        // remove dead particles and empty brushes
         this._brushes[b] = this._brushes[b].filter(p => !p.dead);
         if (this._brushes[b].length == 0) this._brushes.splice(b, 1);
 
@@ -574,17 +529,16 @@ class Sketch {
         this.save();
       }
 
-      if (auto) {
+      if (auto_progress) {
         counter++;
 
-        if (counter >= 6 && recording) {
+        if (counter >= this._modes && recording) {
           recording = false;
           console.log("Recording done!");
         } else if (!recording) {
           this.setup();
         }
 
-        counter = 0;
         this._initParameters();
       }
     }
@@ -596,8 +550,7 @@ const ease = x => {
   return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 };
 
-// get noise for position, either 2D or 3D. Must be scaled
-// beforehand
+// get noise for position, either 2D or 3D. Must be scaled beforehand.
 const getNoise = (x, y, z) => {
   let n;
   if (z === undefined) n = (1 + noise.simplex2(x, y)) / 2;

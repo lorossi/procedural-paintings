@@ -87,10 +87,8 @@ class Particle {
 
   show(ctx) {
     // calculate and ease percent for modulation
-    let percent;
-    percent = this._life / this._max_life;
-    let eased;
-    eased = ease(percent);
+    const percent = this._life / this._max_life;
+    const eased = ease(percent);
 
     // calculate color (hue, saturation, brightness, alpha)
     let hue, sat, bri, alpha;
@@ -105,8 +103,7 @@ class Particle {
     this._force_variable(alpha);
 
     // calculate stroke weight
-    let weight;
-    weight = eased * this._weight;
+    const weight = eased * this._weight;
     // set style
     ctx.strokeStyle = `hsla(${hue},${sat}%,${bri}%,${alpha})`;
     ctx.lineWidth = weight;
