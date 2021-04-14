@@ -1,6 +1,6 @@
 
 // user interaction
-let auto_save = true;
+let auto_save = false;
 let recording = false;
 let auto_progress = false;
 // parameters
@@ -117,11 +117,12 @@ class Sketch {
       // hue interval is different for each particle brush
       const hue_offset = rand.randomInterval(this._hue_offset, 80);
       const hue_interval = rand.random(140, 180);
+      const life_factor = rand.randomInterval(1.75, 0.5);
       for (let j = 0; j < particles_num; j++) {
         // create and push new particle
         const x = rand.random(width);
         const y = rand.random(height);
-        particles.push(new Particle(x, y, width, height, hue_offset, hue_interval, 2, 2));
+        particles.push(new Particle(x, y, width, height, hue_offset, hue_interval, life_factor, 2));
       }
 
       this._brushes.push(particles);
@@ -141,6 +142,7 @@ class Sketch {
       // hue interval is different for each particle brush
       const hue_offset = rand.randomInterval(this._hue_offset, 80);
       const hue_interval = rand.random(140, 180);
+      const life_factor = rand.randomInterval(2, 0.5);
       for (let j = 0; j < particles_num; j++) {
         // create and push new particle
         const rho = rand.random(radius);
@@ -148,7 +150,7 @@ class Sketch {
 
         const x = rho * Math.cos(theta) + width / 2;
         const y = rho * Math.sin(theta) + height / 2;
-        particles.push(new Particle(x, y, width, height, hue_offset, hue_interval, 2, 2));
+        particles.push(new Particle(x, y, width, height, hue_offset, hue_interval, life_factor, 2));
       }
       this._brushes.push(particles);
     }
@@ -163,7 +165,7 @@ class Sketch {
       // center of the circular brush
       const cx = rand.randomInterval(width / 2, width / 4);
       const cy = rand.randomInterval(height / 2, height / 4);
-      const r = rand.randomInterval(width / 4, width / 12);
+      const r = rand.randomInterval(width / 6, width / 12);
       // hue interval and offset of the brush
       const hue_interval = rand.random(20);
       const hue_offset = rand.randomInterval(this._hue_offset, 20);
@@ -187,7 +189,7 @@ class Sketch {
     // particle boundaries
     const width = this.canvas.width * (1 - 2 * this._border);
     const height = this.canvas.height * (1 - 2 * this._border);
-    const line_border = 0.05 * width;
+    const line_border = 0.2 * width;
     const min_length = Math.min(width, height) / 4;
     const max_length = Math.max(width, height) / 2;
 
@@ -374,10 +376,10 @@ class Sketch {
     position_scl = rand.randomInterval(0.003, 0.001);
     color_scl = rand.randomInterval(0.0005, 0.00025);
 
-    this._border = 0.1;
+    this._border = 0.15;
     this._hue_offset = rand.random(360);
-    this._sq_pixel_density = 0.05;
-    this._linear_pixel_density = 2;
+    this._sq_pixel_density = 0.025;
+    this._linear_pixel_density = 1;
     this._ended = false;
     this._max_particles_on_screen = 5000;
 
@@ -402,17 +404,15 @@ class Sketch {
     if (!auto_progress) {
       mode = rand.randomInt(this._modes);
     } else {
-      mode = counter;
+      mode = counter % this._modes;
     }
-
-    mode = 1;
 
     switch (mode) {
       case 0:
         this._free_brushes = 4;
         break;
       case 1:
-        this._free_circle_brushes = 4;
+        this._free_circle_brushes = 6;
         break;
       case 2:
         this._circle_brushes = rand.randomInt(8, 12);

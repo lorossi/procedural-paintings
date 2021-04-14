@@ -1,6 +1,6 @@
 // Particle class
 class Particle {
-  constructor(x, y, width, height, hue_offset, hue_interval, life_factor = 1, max_resets = 2) {
+  constructor(x, y, width, height, hue_offset, hue_interval, life_factor = 1, max_resets = 1) {
     this._width = width;
     this._height = height;
     this._hue_offset = hue_offset;
@@ -43,7 +43,7 @@ class Particle {
     n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 4000 + this._seed);
     this._life = n * (this._max_life - this._min_life) + this._min_life;
     // compute tolerances - how much the particle can out outside the border
-    this._life_tolerance = rand.random(this._max_life / 30);
+    this._life_tolerance = rand.random(this._max_life / 50);
   }
 
   move() {
@@ -95,17 +95,17 @@ class Particle {
     hue = (this._hue + this._hue_offset);
     sat = (1 - eased) * (100 - this._sat_min) + this._sat_min;
     bri = (1 - eased) * (this._bri_max - 50) + 50;
-    alpha = eased * 0.5;
+    alpha = percent;
 
     this._wrap_variable(hue, 0, 360);
     this._force_variable(sat);
     this._force_variable(bri);
-    this._force_variable(alpha);
+    this._force_variable(alpha, 0, 1);
 
     // calculate stroke weight
     const weight = eased * this._weight;
     // set style
-    ctx.strokeStyle = `hsla(${hue},${sat}%,${bri}%,${alpha})`;
+    ctx.strokeStyle = `hsla(${hue}, ${sat}%, ${bri}%, ${alpha})`;
     ctx.lineWidth = weight;
     // actually draw line between old and current point
     ctx.beginPath();
