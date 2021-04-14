@@ -1,8 +1,10 @@
-// parameters
-let position_scl, color_scl;
+
+// user interaction
 let auto_save = true;
 let recording = false;
 let auto_progress = false;
+// parameters
+let position_scl, color_scl;
 let counter = 0;
 
 // objects
@@ -43,8 +45,7 @@ class Sketch {
   timeDraw() {
     // request another frame
     window.requestAnimationFrame(this.timeDraw.bind(this));
-    let diff;
-    diff = performance.now() - this.then;
+    const diff = performance.now() - this.then;
     if (diff < this.fps_interval) {
       // not enough time has passed, so we request next frame and give up on this render
       return;
@@ -74,18 +75,15 @@ class Sketch {
     // add back color
     this.background("hsla(33, 82%, 96%, 1)");
     // add noise
-    let scl;
-    scl = 4;
-    let offset;
-    offset = rand.random(100000);
-    let background_scl;
-    background_scl = 0.004;
+    const scl = 4;
+    const offset = rand.random(100000);
+    const background_scl = 0.004;
     for (let x = 0; x < this.canvas.width; x += scl) {
       for (let y = 0; y < this.canvas.height; y += scl) {
-        let n, bri, alpha;
-        n = getNoise(x * background_scl, y * background_scl, offset);
-        bri = n * 30 + 50;
-        alpha = 0.25;
+        const n = getNoise(x * background_scl, y * background_scl, offset);
+        const bri = n * 30 + 50;
+        const alpha = 0.25;
+
         this.ctx.fillStyle = `hsla(45, 40%, ${bri}%, ${alpha})`;
         this.ctx.fillRect(x, y, scl, scl);
       }
@@ -98,7 +96,7 @@ class Sketch {
 
   save() {
     let filename, link;
-    filename = this._title + ".png";
+    filename = `procedural-painting-${this._title}.png`;
     link = document.createElement("a");
     link.download = filename;
     link.href = this.canvas.toDataURL("image/png");
@@ -132,8 +130,11 @@ class Sketch {
 
   _createFreeCircleParticles(brushes) {
     // particle boundaries
-    const radius = this.canvas.width / 2 * (1 - 2 * this._border);
-    const particles_num = Math.PI * (r ** 2) * this._sq_pixel_density;
+    const width = this.canvas.width * (1 - 2 * this._border);
+    const height = this.canvas.height * (1 - 2 * this._border);
+
+    const radius = Math.min(width, height) / 2 * (1 - 2 * this._border);
+    const particles_num = Math.PI * (radius ** 2) * this._sq_pixel_density;
     // create particles
     for (let i = 0; i < brushes; i++) {
       let particles = [];
@@ -145,8 +146,8 @@ class Sketch {
         const rho = rand.random(radius);
         const theta = rand.random(TWO_PI);
 
-        const x = rho * Math.cos(theta);
-        const y = rho * Math.sin(theta);
+        const x = rho * Math.cos(theta) + width / 2;
+        const y = rho * Math.sin(theta) + height / 2;
         particles.push(new Particle(x, y, width, height, hue_offset, hue_interval, 2, 2));
       }
       this._brushes.push(particles);
@@ -373,9 +374,9 @@ class Sketch {
     position_scl = rand.randomInterval(0.003, 0.001);
     color_scl = rand.randomInterval(0.0005, 0.00025);
 
-    this._border = 0.15;
+    this._border = 0.1;
     this._hue_offset = rand.random(360);
-    this._sq_pixel_density = 0.04;
+    this._sq_pixel_density = 0.05;
     this._linear_pixel_density = 2;
     this._ended = false;
     this._max_particles_on_screen = 5000;
@@ -393,8 +394,7 @@ class Sketch {
     // to get the title, take the seed (current epoch), remove the
     // last 3 digits (the msec) and shuffle it
     // since the seed is set, the result will be deterministic
-    let title;
-    title = this._seed.toString().slice(0, 10);
+    const title = this._seed.toString().slice(0, 10);
     this._title = string_shuffle(title);
 
     let mode;
@@ -404,6 +404,8 @@ class Sketch {
     } else {
       mode = counter;
     }
+
+    mode = 1;
 
     switch (mode) {
       case 0:
@@ -477,6 +479,7 @@ class Sketch {
     this._brushes = [];
 
     this._createFreeParticles(this._free_brushes);
+    this._createFreeCircleParticles(this._free_circle_brushes);
     this._createCircleParticles(this._circle_brushes);
     this._createLineParticles(this._line_brushes);
     this._createPolygonParticles(this._polygon_brushes, this._polygon_sides, this._polygons_rotation);

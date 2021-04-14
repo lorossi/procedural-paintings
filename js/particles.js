@@ -43,7 +43,7 @@ class Particle {
     n = getNoise(this._pos.x * color_scl, this._pos.y * color_scl, 4000 + this._seed);
     this._life = n * (this._max_life - this._min_life) + this._min_life;
     // compute tolerances - how much the particle can out outside the border
-    this._life_tolerance = rand.random(this._max_life / 50);
+    this._life_tolerance = rand.random(this._max_life / 30);
   }
 
   move() {
