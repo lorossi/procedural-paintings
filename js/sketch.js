@@ -381,7 +381,7 @@ class Sketch {
     this._sq_pixel_density = 0.025;
     this._linear_pixel_density = 1;
     this._ended = false;
-    this._max_particles_on_screen = 5000;
+    this._max_particles_on_screen = 2000;
 
     this._modes = 7;
     this._free_brushes = 0;
