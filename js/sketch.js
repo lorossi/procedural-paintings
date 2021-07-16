@@ -11,9 +11,9 @@ let counter = 0;
 let rand;
 
 // constants
-let PI = Math.PI;
-let TWO_PI = 2 * PI;
-let HALF_PI = PI / 2;
+const PI = Math.PI;
+const TWO_PI = 2 * PI;
+const HALF_PI = PI / 2;
 
 // Sketch class
 class Sketch {
